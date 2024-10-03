@@ -28,5 +28,7 @@ Parallel Sorting Algorithms
 
 ### 2c. Evaluation plan - what and how will you measure and compare
 - Input sizes, Input types
-- Strong scaling (same problem size, increase number of processors/nodes)
+  - For our input sizes, 10^10, 10^20, 10^40, ...
+  - Out input types will include random data, sorted data, reverse sorted data, and sorted data except for 1%
+- Strong scaling (same problem size, increase number of processors/nodes) 
 - Weak scaling (increase problem size, increase number of processors)
