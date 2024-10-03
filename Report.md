@@ -10,16 +10,18 @@
 4. Sam Zhang
 5. Dennis Dang
 
+Will communicate using Slack and everyone will be responsible for their algorithm and its requirements
+
 ## 2. Project topic
 Parallel Sorting Algorithms
 
 ### 2a. Brief project description (what algorithms will you be comparing and on what architectures)
 
-- Bitonic Sort:
-- Sample Sort:
-- Merge Sort:
-- Radix Sort:
-- Column Sort:
+- Bitonic Sort (Dennis Dang):
+- Sample Sort (Sam Zhang):
+- Merge Sort (Jack Couture): 
+- Radix Sort (Deric Le):
+- Column Sort (Jose Ortiz):
 
 ### 2b. Pseudocode for each parallel algorithm
 - For MPI programs, include MPI calls you will use to coordinate between processes
