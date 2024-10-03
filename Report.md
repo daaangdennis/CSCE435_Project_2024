@@ -1,14 +1,17 @@
 # CSCE 435 Group project
 
 ## 0. Group number: 
+25
 
 ## 1. Group members:
-1. First
-2. Second
-3. Third
-4. Fourth
+1. Jack Couture
+2. Deric Le
+3. Jose Ortiz
+4. Sam Zhang
+5. Dennis Dang
 
-## 2. Project topic (e.g., parallel sorting algorithms)
+## 2. Project topic
+Parallel Sorting Algorithms
 
 ### 2a. Brief project description (what algorithms will you be comparing and on what architectures)
 
@@ -16,6 +19,7 @@
 - Sample Sort:
 - Merge Sort:
 - Radix Sort:
+- Column Sort:
 
 ### 2b. Pseudocode for each parallel algorithm
 - For MPI programs, include MPI calls you will use to coordinate between processes
