@@ -28,7 +28,7 @@ For this project, we will be comparing the sorting algorithms listed below:
 
 - Merge Sort (Jack Couture): Merge sort is a sorting algorithm that divides up the data to work more efficiently and can be used to rapidly sort with parallel computing much larger sets of data. It will take the data and divide them among $p$ processors which will run in parallel to sort the divided segments. This allows the large number of buckets and data to be much more rapidly sorted.
 
-- Radix Sort (Deric Le):
+- Radix Sort (Deric Le): A sorting algorithm that compares the digits/characters of each element instead of the entire element. Since each sorting step is independent of eachother, it can be parallelized efficiently. For each element, we can create a groups based on the index of each digit/character. For example, given a list [23,1,789], we will have three groups: [3,1,9], [2,None,8], [None,None,7], where each group corresponds to the digits at the same index across the elements. Next, we can sort each group independently, and then reconstruct them to output the sorted list.  
 
 - Column Sort (Jose Ortiz): Column sort is a parallel sorting algorithim that organizes data based on their column indices. To implement a parallel version of column sort using MPI, the algorithim divides the input into segments corresponding to different column indices and distributes these segments across multiple processors. Each processor will sort its segment independently using a standard sort algorithim. Once the columns are sorted, the next step is to merge them into a single output array while maintaining the sorted order. This process begins by initializing pointers for each sorted column to track the current smallest unmerged element. The algorithm then compares the current elements pointed to by these pointers and selects the smallest one to add to the final output array. After an element is added, the corresponding pointer is advanced to the next element in that column. This comparison and selection continue until all elements from all columns are merged into the output array.
 
@@ -179,6 +179,44 @@ We will use MPI for message passing and code in C++.
     ```
 
   - Radix Sort (Deric Le):
+    ```
+    MPI_Init()
+
+    MPI_Comm_size()
+    MPI_Comm_rank()
+
+    // master process distributes data to all processes
+    if rank == 0:
+        elements = [23, 1, 789, ...]
+
+        biggest_element = get_max(elements)
+
+        // distribute the elements to each worker evenly
+        for process in processes:
+            MPI_Send(elements, worker)
+
+    // worker process receive, calculate, send
+    else:
+        // worker processes receive the elements
+        MPI_Recv(received_elements)
+
+        // worker processes sort the groups
+        for digit_index in range(max_digits):
+            current_digits = extract_group(received_elements, digit_index)
+            sorted_group = sort(current_digits)
+
+            MPI_Send(sorted_group, master)
+
+    // master process receives sorted groups
+    if rank == 0:
+        // receive the sorted groups from workers
+        MPI_Recv(sorted_group, worker)
+
+        result = combine_sorted_groups(sorted_group)
+        print(result)
+
+    MPI_Finalize()
+    ```
 
   - Column Sort (Jose Ortiz):
 
