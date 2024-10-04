@@ -26,7 +26,7 @@ For this project, we will be comparing the sorting algorithms listed below:
 
 - Sample Sort (Sam Zhang): sample sort is a generalization of quick sort used in parallel processing systems. Sample sort partitions an unsorted list into $k$ buckets, and sorts each bucket. In parallel computing, $p$ buckets are assigned to $p$ processors, allowing efficient sorting of buckets.
 
-- Merge Sort (Jack Couture):
+- Merge Sort (Jack Couture): Merge sort is a sorting algorithm that divides up the data to work more efficiently and can be used to rapidly sort with parallel computing much larger sets of data. It will take the data and divide them among $p$ processors which will run in parallel to sort the divided segments. This allows the large number of buckets and data to be much more rapidly sorted.
 
 - Radix Sort (Deric Le):
 
@@ -116,6 +116,66 @@ We will use MPI for message passing and code in C++.
     ```
 
   - Merge Sort (Jack Couture):
+
+    ```
+    //Initialize MPI
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &num_processes); // Get number of processors
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank); // Get rank of the current process
+
+    //Distribute input data
+    if (rank == 0)
+    {
+      input_data = ReadInputData();
+      total_elements = size_of(input_data); // total number of elements to sort
+      elements_per_process = total_elements / num_processes;
+
+    //Distribute segments of input data to each process
+      for (i = 1; i < num_processes; i++)
+      {
+          start_index = i * elements_per_process;
+          MPI_Send(&input_data[start_index], elements_per_process, MPI_INT, i, 0, MPI_COMM_WORLD);
+      }
+
+    //Master keeps the first portion of the data
+      local_data = input_data[0:elements_per_process];
+    }
+    else
+    {
+    //Other processes receive their segments of the array
+      MPI_Recv(&local_data, elements_per_process, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+
+    //Each process sorts its local segment
+    local_sorted_data = sort(local_data);
+
+    //Gather sorted segments at the master process
+    if (rank == 0)
+    {
+      sorted_data = InitializeArray(total_elements);
+      copy(local_sorted_data, sorted_data[0:elements_per_process]);
+
+    // Receive sorted segments from other processes
+      for (i = 1; i < num_processes; i++)
+      {
+          start_index = i * elements_per_process;
+          MPI_Recv(&sorted_data[start_index], elements_per_process, MPI_INT, i, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      }
+
+    //Merge all sorted segments at the master process
+      final_sorted_data = MergeSortedSegments(sorted_data, num_processes, elements_per_process);
+
+    }
+    else
+    {
+    // Other processes send their sorted segment to the master process
+      MPI_Send(local_sorted_data, elements_per_process, MPI_INT, 0, 1, MPI_COMM_WORLD);
+    }
+
+    // Finalize MPI
+    MPI_Finalize();
+    ```
+
   - Radix Sort (Deric Le):
 
   - Column Sort (Jose Ortiz):
