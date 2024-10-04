@@ -39,6 +39,24 @@ We will use MPI for message passing and code in C++.
 - For MPI programs, include MPI calls you will use to coordinate between processes
 
   - Bitonic Sort (Dennis Dang):
+
+    ```
+    Initialize MPI
+
+    If rank == MASTER:
+      Generate data and split the data among the number of processors using MPI_Scatter
+    
+    if rank % 2 == 0
+      Locally sort data into ascending order using any standard sorting algorithm
+    else: // rank % 2 != 0
+      Locally sort data into descending order using any standard sorting algorithm
+
+    Perform bitonic merging between processors using MPI_Send and MPI_Recv
+    Gather sorted data to the Master process using MPI_Gather
+
+    Finalize MPI
+    ```
+
   - Sample Sort (Sam Zhang):
 
     ```
