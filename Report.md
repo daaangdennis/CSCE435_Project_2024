@@ -22,7 +22,7 @@ Parallel Sorting Algorithms
 
 For this project, we will be comparing the sorting algorithms listed below:
 
-- Bitonic Sort (Dennis Dang): Bitonic sort is a sorting algorithm that first creates a bitonic sequence and then performs a bitonic merge to create a sorted sequence. In order to make a parallel program for bitonic sort, the array data will be split among $p$ processors. Each processor will then sort their data either ascending or descending based on rank number to create the bitonic sequence. Then, MPI will be used to allow the processors to communicate and exchange data between one another to perform the bitonic merge.
+- Bitonic Sort (Dennis Dang): Bitonic sort is a sorting algorithm that first creates a bitonic sequence and then performs a bitonic merge to create a sorted sequence. In order to make a parallel program for bitonic sort, the array data will be split among $p$ processors. Each processor will then sort their data either ascending or descending based on rank number and then use MPI to create the bitonic sequence. Then, MPI will be used again to allow the processors to communicate and exchange data between one another to perform the bitonic merge.
 
 - Sample Sort (Sam Zhang): sample sort is a generalization of quick sort used in parallel processing systems. Sample sort partitions an unsorted list into $k$ buckets, and sorts each bucket. In parallel computing, $p$ buckets are assigned to $p$ processors, allowing efficient sorting of buckets.
 
@@ -51,6 +51,7 @@ We will use MPI for message passing and code in C++.
     else: // rank % 2 != 0
       Locally sort data into descending order using any standard sorting algorithm
 
+    Create bitonic sequence using MPI_Send and MPI_Recv
     Perform bitonic merging between processors using MPI_Send and MPI_Recv
     Gather sorted data to the Master process using MPI_Gather
 
@@ -278,7 +279,7 @@ We will use MPI for message passing and code in C++.
 ### 2c. Evaluation plan - what and how will you measure and compare
 
 - Input sizes, Input types
-  - For our inputs, we will be using arrays of integers of size 10<sup>10</sup>, 10<sup>20</sup>, 10<sup>40</sup>, ...
+  - For our inputs, we will be using arrays of integers of size 2<sup>14</sup>, 2<sup>20</sup>, and 2<sup>26</sup>
   - Our input types will include arrays containing random data, sorted data, reverse sorted data, and sorted data except for 1%
 - Strong scaling (same problem size, increase number of processors/nodes) 
 - Weak scaling (increase problem size, increase number of processors)
