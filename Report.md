@@ -224,70 +224,69 @@ We will use MPI for message passing and code in C++.
 
     ```
     // initialize MPI
-      MPI_Init(&argc, &argv);
-      MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
-      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-      // define matrix dimensions
-      int r = ...;  // number of rows
-      int s = ...;  // number of columns
-      int local_columns = s / num_procs;  // num of columns per processor
-      int local_matrix[r][local_columns];  // column handled by each processor
+    // define matrix dimensions
+    int r = ...;  // number of rows
+    int s = ...;  // number of columns
+    int local_columns = s / num_procs;  // num of columns per processor
+    int local_matrix[r][local_columns];  // column handled by each processor
 
-      // distribute data across processors
-      if (rank == 0) {
-          // send each processor its subset of columns
-          for (int p = 1; p < num_procs; p++) {
-              MPI_Send(&matrix[r][p * local_columns], r * local_columns, MPI_INT, p, 0, MPI_COMM_WORLD);
-          }
-      } else {
-          // recieve matrix part on non-master processors
-          MPI_Recv(&local_matrix, r * local_columns, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      }
+    // distribute data across processors
+    if (rank == 0) {
+        // send each processor its subset of columns
+        for (int p = 1; p < num_procs; p++) {
+            MPI_Send(&matrix[r][p * local_columns], r * local_columns, MPI_INT, p, 0, MPI_COMM_WORLD);
+        }
+    } else {
+        // recieve matrix part on non-master processors
+        MPI_Recv(&local_matrix, r * local_columns, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
 
-      for (int iter = 0; iter < num_iterations; iter++) {
-          // sort columns locally
-          for (int col = 0; col < local_columns; col++) {
-              sort_column(local_matrix, r, col);
-          }
+    for (int iter = 0; iter < num_iterations; iter++) {
+        // sort columns locally
+        for (int col = 0; col < local_columns; col++) {
+            sort_column(local_matrix, r, col);
+        }
 
-          // perform fixed permutation
-          if (rank == 0) {
-              for (int p = 1; p < num_procs; p++) {
-                  // gather sorted array from each column
-                  MPI_Recv(&local_matrix, r * local_columns, MPI_INT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-              }
+        // perform fixed permutation
+        if (rank == 0) {
+            for (int p = 1; p < num_procs; p++) {
+                // gather sorted array from each column
+                MPI_Recv(&local_matrix, r * local_columns, MPI_INT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            }
 
-              // logic for matrix permutation
-              permute_matrix(local_matrix, r, s);
+            // logic for matrix permutation
+            permute_matrix(local_matrix, r, s);
 
-              // redistritube permuted matrix back to processors
-              for (int p = 1; p < num_procs; p++) {
-                  MPI_Send(&matrix[r][p * local_columns], r * local_columns, MPI_INT, p, 0, MPI_COMM_WORLD);
-              }
-          } else {
-              // sorted column back to rank 0 for perm
-              MPI_Send(&local_matrix, r * local_columns, MPI_INT, 0, 0, MPI_COMM_WORLD);
+            // redistritube permuted matrix back to processors
+            for (int p = 1; p < num_procs; p++) {
+                MPI_Send(&matrix[r][p * local_columns], r * local_columns, MPI_INT, p, 0, MPI_COMM_WORLD);
+            }
+        } else {
+            // sorted column back to rank 0 for perm
+            MPI_Send(&local_matrix, r * local_columns, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
-              // permuted matrix back from 0
-              MPI_Recv(&local_matrix, r * local_columns, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-          }
+            // permuted matrix back from 0
+            MPI_Recv(&local_matrix, r * local_columns, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        }
 
-          // repeat untill matrix is fully sorted
-      }
+        // repeat untill matrix is fully sorted
+    }
 
-      // gather final sorted data from all processors
-      if (rank == 0) {
-          for (int p = 1; p < num_procs; p++) {
-              MPI_Recv(&matrix[r][p * local_columns], r * local_columns, MPI_INT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-          }
-      } else {
-          MPI_Send(&local_matrix, r * local_columns, MPI_INT, 0, 0, MPI_COMM_WORLD);
-      }
+    // gather final sorted data from all processors
+    if (rank == 0) {
+        for (int p = 1; p < num_procs; p++) {
+            MPI_Recv(&matrix[r][p * local_columns], r * local_columns, MPI_INT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        }
+    } else {
+        MPI_Send(&local_matrix, r * local_columns, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    }
 
-      // finalize MPI
-      MPI_Finalize();
-
+    // finalize MPI
+    MPI_Finalize();
     ```
 
 ### 2c. Evaluation plan - what and how will you measure and compare
