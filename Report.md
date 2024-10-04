@@ -98,20 +98,22 @@ We will use MPI for message passing and code in C++.
       # sort each bucket
       for i in {1,2,...,num_processors}:
         buckets[i] <- sort(buckets[i])
-      # send i-th bucket to the i-th processor
-      recv_vals <- []
+      # exchange buckets
       for i in {1,2,...,num_processors}:
-        send(len(bucket[i]), 1, ULONG, i)
-        send(buckets[i], len(buckets[i]), DType, i)
-      # receive buckets corresponding to my pid from every processor
-      for i in {1,2,...,num_processors}:
-        if (i != pid):
-          recv_bucket_size <- recv(1, ULONG, i)
-          recv_bucket <- recv(recv_bucket_size, DType, i)
-          recv_vals.append(flatten(recv_bucket))
+        if (pid == i):
+          # receive buckets corresponding to my pid from every processor
+          for j in {1,2,...,num_processors}:
+            if (j != pid):
+              recv_bucket_size <- recv(1, ULONG, j)
+              recv_bucket <- recv(recv_bucket_size, DType, j)
+              recv_vals.append(flatten(recv_bucket))
+            else:
+              recv_vals.append(flatten(buckets[pid]))
         else:
-          recv_vals.append(flatten(buckets[pid]))
-      # sort received elements
+          # send i-th bucket to the i-th processor
+          send(len(bucket[i]), 1, ULONG, i)
+          send(buckets[i], len(buckets[i]), DType, i)
+      # sort received values
       sorted_recv_vals = sort(recv_vals)
     ```
 
