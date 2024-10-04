@@ -28,9 +28,9 @@ For this project, we will be comparing the sorting algorithms listed below:
 
 - Merge Sort (Jack Couture): Merge sort is a sorting algorithm that divides up the data to work more efficiently and can be used to rapidly sort with parallel computing much larger sets of data. It will take the data and divide them among $p$ processors which will run in parallel to sort the divided segments. This allows the large number of buckets and data to be much more rapidly sorted.
 
-- Radix Sort (Deric Le): A sorting algorithm that compares the digits/characters of each element instead of the entire element. Since each sorting step is independent of eachother, it can be parallelized efficiently. For each element, we can create a groups based on the index of each digit/character. For example, given a list [23,1,789], we will have three groups: [3,1,9], [2,None,8], [None,None,7], where each group corresponds to the digits at the same index across the elements. Next, we can sort each group independently, and then reconstruct them to output the sorted list.  
+- Radix Sort (Deric Le): A sorting algorithm that compares the digits/characters of each element instead of the entire element. Since each sorting step is independent of eachother, it can be parallelized efficiently. For each element, we can create a groups based on the index of each digit/character. For example, given a list [23,1,789], we will have three groups: [3,1,9], [2,None,8], [None,None,7], where each group corresponds to the digits at the same index across the elements. Next, we can sort each group independently, and then reconstruct them to output the sorted list.
 
-- Column Sort (Jose Ortiz): Column sort is a parallel sorting algorithim that organizes data based on their column indices. To implement a parallel version of column sort using MPI, the algorithim divides the input into segments corresponding to different column indices and distributes these segments across multiple processors. Each processor will sort its segment independently using a standard sort algorithim. Once the columns are sorted, the next step is to merge them into a single output array while maintaining the sorted order. This process begins by initializing pointers for each sorted column to track the current smallest unmerged element. The algorithm then compares the current elements pointed to by these pointers and selects the smallest one to add to the final output array. After an element is added, the corresponding pointer is advanced to the next element in that column. This comparison and selection continue until all elements from all columns are merged into the output array.
+- Column Sort (Jose Ortiz): Columnsort is a parallel sorting algorithm that arranges the input into an $r$ x $s$ matrix, where each processor manages a subset of columns. The algorithm operates through multiple rounds of sorting and permutations. First, the columns are independently sorted. Then, a fixed permutation is applied to redistribute elements across the columns. This process of column sorting and inter-column permutations repeats until the rows of the matrix are fully sorted. The first column will hold the smallest elements, sorted from top to bottom, followed by the next columns in order. To achieve parallel Columnsort using MPI, the matrix is distributed across multiple processors, with each processor responsible for managing and sorting a subset of the columns. MPI enables efficient communication between processors during the sorting and permutation phases.
 
 We will use MPI for message passing and code in C++.
 
@@ -45,7 +45,7 @@ We will use MPI for message passing and code in C++.
 
     If rank == MASTER:
       Generate data and split the data among the number of processors using MPI_Scatter
-    
+
     if rank % 2 == 0
       Locally sort data into ascending order using any standard sorting algorithm
     else: // rank % 2 != 0
@@ -180,6 +180,7 @@ We will use MPI for message passing and code in C++.
     ```
 
   - Radix Sort (Deric Le):
+
     ```
     MPI_Init()
 
@@ -223,63 +224,78 @@ We will use MPI for message passing and code in C++.
 
     ```
     // initialize MPI
-    MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &num_processes); // num of processor
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank); // rank of process
+      MPI_Init(&argc, &argv);
+      MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    // distribute input data
-    if (rank == 0) {
-        // divide into segments for each column
-        input_data = ReadInputData();
-        num_columns = tasks_per_processors;
+      // define matrix dimensions
+      int r = ...;  // number of rows
+      int s = ...;  // number of columns
+      int local_columns = s / num_procs;  // num of columns per processor
+      int local_matrix[r][local_columns];  // column handled by each processor
 
-        // distribute columns to each process
-        for (i = 0; i < num_processes; i++) {
-            //send column to corresponding process
-            MPI_Send(&input_data[column_start_index[i]], column_size, MPI_INT, i, 0, MPI_COMM_WORLD);
-        }
-    } else {
-        // other processes receive their segments
-        MPI_Recv(&local_data, column_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    }
+      // distribute data across processors
+      if (rank == 0) {
+          // send each processor its subset of columns
+          for (int p = 1; p < num_procs; p++) {
+              MPI_Send(&matrix[r][p * local_columns], r * local_columns, MPI_INT, p, 0, MPI_COMM_WORLD);
+          }
+      } else {
+          // recieve matrix part on non-master processors
+          MPI_Recv(&local_matrix, r * local_columns, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      }
 
-    // sort segments
-    local_sorted_arr = sort(local_data);
+      for (int iter = 0; iter < num_iterations; iter++) {
+          // sort columns locally
+          for (int col = 0; col < local_columns; col++) {
+              sort_column(local_matrix, r, col);
+          }
 
-    // merge sorted columns
-    if (rank == 0) {
-        // initialize pointers sorted columns
-        Init_pointers(num_columns, pointers);
-        merged_output = Init_output_arr(total_elements);
+          // perform fixed permutation
+          if (rank == 0) {
+              for (int p = 1; p < num_procs; p++) {
+                  // gather sorted array from each column
+                  MPI_Recv(&local_matrix, r * local_columns, MPI_INT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+              }
 
-        for (i = 0; i < total_elements; i++) {
-            // compare current elements pointed
-            min_index = Find_min_ind(pointers, local_sorted_arr);
+              // logic for matrix permutation
+              permute_matrix(local_matrix, r, s);
 
-            // find smallest elem to append to final arr
-            merged_output[i] = local_sorted_arr[min_index];
+              // redistritube permuted matrix back to processors
+              for (int p = 1; p < num_procs; p++) {
+                  MPI_Send(&matrix[r][p * local_columns], r * local_columns, MPI_INT, p, 0, MPI_COMM_WORLD);
+              }
+          } else {
+              // sorted column back to rank 0 for perm
+              MPI_Send(&local_matrix, r * local_columns, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
-            // advance pointer of column that was just used
-            move_pointer(pointers, min_index);
-        }
+              // permuted matrix back from 0
+              MPI_Recv(&local_matrix, r * local_columns, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          }
 
-        // send merge output
-        for (i = 1; i < num_processes; i++) {
-            MPI_Send(merged_output, total_elements, MPI_INT, i, 1, MPI_COMM_WORLD);
-        }
-    } else {
-        // processes receive merge output
-        MPI_Recv(merged_output, total_elements, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    }
+          // repeat untill matrix is fully sorted
+      }
 
-    // finalize MPI
-    MPI_Finalize();
+      // gather final sorted data from all processors
+      if (rank == 0) {
+          for (int p = 1; p < num_procs; p++) {
+              MPI_Recv(&matrix[r][p * local_columns], r * local_columns, MPI_INT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          }
+      } else {
+          MPI_Send(&local_matrix, r * local_columns, MPI_INT, 0, 0, MPI_COMM_WORLD);
+      }
+
+      // finalize MPI
+      MPI_Finalize();
+
     ```
 
 ### 2c. Evaluation plan - what and how will you measure and compare
 
 - Input sizes, Input types
-  - For our inputs, we will be using arrays of integers of size 2<sup>14</sup>, 2<sup>20</sup>, and 2<sup>26</sup>
-  - Our input types will include arrays containing random data, sorted data, reverse sorted data, and sorted data except for 1%
-- Strong scaling (same problem size, increase number of processors/nodes) 
+  - For our inputs, we will be using arrays of integers of size 2<sup>16</sup>, 2<sup>18</sup>, 2<sup>20</sup>, 2<sup>22</sup>, 2<sup>24</sup>, 2<sup>26</sup>, and 2<sup>28</sup>
+  - Our input types will include arrays containing random data, sorted data, reverse sorted data, and 1% perturbed
+- MPI number of processes:
+  - 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
+- Strong scaling (same problem size, increase number of processors/nodes)
 - Weak scaling (increase problem size, increase number of processors)
