@@ -30,8 +30,8 @@ int main(int argc, char *argv[])
     // vector<unsigned int> worker_vector((unsigned int)(input_size / numworkers), 0);
     // REFERENCE THIS FOR ALGORITHMS
 
-    vector<unsigned int> main_vector(input_size, 0);
-    const char *data_init_runtime = 'data_init_runtime';
+    std::vector<unsigned int> main_vector(input_size, 0);
+    const char *data_init_runtime = "data_init_runtime";
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
@@ -39,22 +39,23 @@ int main(int argc, char *argv[])
     if (numtasks < 2)
     {
         printf("Need at least two MPI tasks. Quitting...\n");
-        MPI_Abort(MPI_COMM_WORLD, rc);
+        MPI_Abort(MPI_COMM_WORLD, 1);
         exit(1);
     }
 
     cali::ConfigManager mgr;
     mgr.start();
 
+    MPI_Comm worker_comm;
     MPI_Comm_split(MPI_COMM_WORLD, taskid == MASTER ? MPI_UNDEFINED : 0, taskid, &worker_comm);
 
     if (taskid == MASTER)
     {
+	/*
         CALI_MARK_BEGIN(data_init_runtime);
 
-        MPI_Comm_rank(worker_comm, &worker_rank);
-
         unsigned int perturbed_index = round(input_size * 0.01);
+
 
         if (input_size == "sorted")
         {
@@ -88,8 +89,9 @@ int main(int argc, char *argv[])
                 main_vector[i] = rand() % input_size;
             }
         }
+	*/
 
-        CALI_MARK_END(data_init_runtime);
+        //CALI_MARK_END(data_init_runtime);
 
         // implement based on how call you function
 
@@ -111,4 +113,7 @@ int main(int argc, char *argv[])
 
         return 0;
     }
+
+    MPI_Finalize();
+    return 0;
 }
