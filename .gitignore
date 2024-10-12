@@ -1,1 +1,9 @@
 .vscode/*
+**/cmake_install.cmake
+**/CMakeFiles
+**/CMakeCache.txt
+**/Makefile
+**/main
+**/test_decentralized_generation
+**/test_sort_validation
+**/output*
