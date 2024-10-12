@@ -94,6 +94,25 @@ int main (int argc, char *argv[]) {
         if (pid == 0) {
             printf("\n");
         }
+
+        /* test case 5: more processors than global seq */
+        local_seq.clear();
+        local_seq = decentralized_generation(pid, num_processors, 0, 2);
+        for (unsigned int i = 0; i < num_processors; ++i) {
+            MPI_Barrier(MPI_COMM_WORLD);
+            if (pid == i) {
+                printf ("DEBUG [p%d]: seq = {", pid);
+                for (unsigned int j = 0; j < local_seq.size(); ++j){
+                    printf("%d ", local_seq.at(j));
+                }
+                printf("}.\n");
+            }
+            MPI_Barrier(MPI_COMM_WORLD);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+        if (pid == 0) {
+            printf("\n");
+        }
     }
 
     MPI_Finalize();
