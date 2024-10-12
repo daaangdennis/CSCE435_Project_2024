@@ -8,7 +8,8 @@ make
 
 ### run grace main
 ```
-sbatch mpi.grace_job 20 2
+sbatch mpi.grace_job <array size> <array type> <algorithm> <processes>
+sbatch mpi.grace_job 10 random radix 2
 ```
 
 ### run grace tests

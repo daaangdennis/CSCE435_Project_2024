@@ -11,6 +11,13 @@
 #include <adiak.hpp>
 
 #define MASTER 0 /* taskid of first task */
+#define DEBUG 1 /* print debugging */
+/*
+example debug usage:
+#if DEBUG
+printf("will print if debug is true")
+#endif
+*/
 
 int main(int argc, char *argv[])
 {
@@ -73,10 +80,12 @@ int main(int argc, char *argv[])
     /********************** MASTER **************************/
     if (taskid == MASTER)
     {
+        #if DEBUG
         printf("arraysize: %u\n arraytype: %s\n algo: %s\n",
-               array_size,
-               array_type.c_str(),
-               algorithm.c_str());
+            array_size,
+            array_type.c_str(),
+            algorithm.c_str());
+        #endif
     }
 
     // end main region
