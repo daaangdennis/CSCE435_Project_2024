@@ -11,6 +11,6 @@
 #include <adiak.hpp>
 
 
-int bitonic_sort(std::vector<unsigned int> main_vector, unsigned int input_size, MPI_Comm worker_comm);
+int bitonic_sort(std::vector<unsigned int>& local_seq, const int& taskid, const int& numtasks, const MPI_Comm& comm);
 
 #endif
