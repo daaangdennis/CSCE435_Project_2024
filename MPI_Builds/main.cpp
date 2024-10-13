@@ -83,11 +83,11 @@ int main(int argc, char *argv[])
     mgr.start();
 
     // start main region
-    std::vector<unsigned int> main_vector(array_size, 0);
+    // std::vector<unsigned int> main_vector(array_size, 0);
     CALI_MARK_BEGIN(main);
 
-    MPI_Comm worker_comm;
-    MPI_Comm_split(MPI_COMM_WORLD, taskid == MASTER ? MPI_UNDEFINED : 0, taskid, &worker_comm);
+    // MPI_Comm worker_comm;
+    // MPI_Comm_split(MPI_COMM_WORLD, taskid == MASTER ? MPI_UNDEFINED : 0, taskid, &worker_comm);
 
     // /********************** MASTER **************************/
     // if (taskid == MASTER)
@@ -108,29 +108,48 @@ int main(int argc, char *argv[])
     #endif
     
     /****************** generate the data (temp) ***********************/
-    main_vector={1,2,3,4};
+    // main_vector={1,2,3,4};
 
-    if (taskid==0){
-        for (unsigned int element : main_vector) {
-            printf("&d",element);
-        }
+    // if (taskid==0){
+    //     for (unsigned int element : main_vector) {
+    //         printf("&d",element);
+    //     }
+    // }
+
+    std::vector<unsigned int> main_vector;
+    /********************** generate the data *****************************/
+    if (array_type=="sorted"){
+        main_vector = decentralized_generation(taskid, numtasks, array_size, 0);
+    }
+    else if (array_type=="reverse"){
+        main_vector = decentralized_generation(taskid, numtasks, array_size, 1);
+    }
+    else if (array_type=="perturbed"){
+        main_vector = decentralized_generation(taskid, numtasks, array_size, 2);
+    }
+    else if (array_type=="random"){
+        main_vector = decentralized_generation(taskid, numtasks, array_size, 3);
+    }
+    else{
+        printf("Invalid array type");
+        MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
     /********************** sort the data *****************************/
     if (algorithm=="bitonic"){
-        bitonic_sort(main_vector, array_size, worker_comm);
+        bitonic_sort(main_vector, taskid, numtasks, MPI_COMM_WORLD);
     }
     else if (algorithm=="column"){
-        column_sort(main_vector, array_size, worker_comm);
+        //column_sort(main_vector, array_size, worker_comm);
     }
     else if (algorithm=="merge"){
-        merge_sort(main_vector, array_size, worker_comm);
+        //merge_sort(main_vector, array_size, worker_comm);
     }
     else if (algorithm=="radix"){
-        radix_sort(main_vector, &worker_comm, argv);
+        //radix_sort(main_vector, &worker_comm, argv);
     }
     else if (algorithm=="sample"){
-        sample_sort(main_vector, array_size, worker_comm);
+        //sample_sort(main_vector, array_size, worker_comm);
     }
     else{
         printf("Invalid algorithm");
