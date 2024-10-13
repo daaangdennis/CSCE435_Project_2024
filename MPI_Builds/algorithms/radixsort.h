@@ -5,12 +5,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <cmath>
 
 #include <caliper/cali.h>
 #include <caliper/cali-manager.h>
 #include <adiak.hpp>
 
 
-int radix_sort(std::vector<unsigned int> main_vector, unsigned int input_size, MPI_Comm worker_comm);
+int radix_sort(std::vector<unsigned int> main_vector, MPI_Comm* worker_comm, char** argv);
 
 #endif

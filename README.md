@@ -14,8 +14,8 @@ sbatch mpi.grace_job 10 random radix 2
 
 ### run grace tests
 ```
-sbatch generation-mpi.grace_job 20 2
-sbatch validation-mpi.grace_job 20 2
+sbatch tests/generation-mpi.grace_job 20 2
+sbatch tests/validation-mpi.grace_job 20 2
 ```
 
 This repository contains the necessary materials for the project, including a template for the report

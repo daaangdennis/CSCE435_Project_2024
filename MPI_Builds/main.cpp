@@ -10,10 +10,24 @@
 #include <caliper/cali-manager.h>
 #include <adiak.hpp>
 
+// algorithms
+#include "algorithms/bitonicsort.h"
+#include "algorithms/columnsort.h"
+#include "algorithms/mergesort.h"
+#include "algorithms/radixsort.h"
+#include "algorithms/samplesort.h"
+#include "algorithms/decentralized_generation.h"
+#include "algorithms/sort_validation.h"
+
+// temporarily used for data generation
+#include <algorithm>
+#include <random>
+
 #define MASTER 0 /* taskid of first task */
 #define DEBUG 1 /* print debugging */
 /*
 example debug usage:
+
 #if DEBUG
 printf("will print if debug is true")
 #endif
@@ -22,7 +36,6 @@ printf("will print if debug is true")
 int main(int argc, char *argv[])
 {
     CALI_CXX_MARK_FUNCTION;
-
     const char* main = "main";                              // main function
     const char* data_init_runtime = "data_init_runtime";    // generating data during the program
     const char* comm = "comm";                              // all communication related functions
@@ -51,8 +64,7 @@ int main(int argc, char *argv[])
         return 1;
     }
     
-    // check enough processes
-    int numtasks, taskid;
+    int taskid, numtasks;
 
     // init mpi
     MPI_Init(&argc, &argv);
@@ -77,16 +89,64 @@ int main(int argc, char *argv[])
     MPI_Comm worker_comm;
     MPI_Comm_split(MPI_COMM_WORLD, taskid == MASTER ? MPI_UNDEFINED : 0, taskid, &worker_comm);
 
-    /********************** MASTER **************************/
-    if (taskid == MASTER)
-    {
-        #if DEBUG
-        printf("arraysize: %u\n arraytype: %s\n algo: %s\n",
-            array_size,
-            array_type.c_str(),
-            algorithm.c_str());
-        #endif
+    // /********************** MASTER **************************/
+    // if (taskid == MASTER)
+    // {
+    //     #if DEBUG
+    //     printf("arraysize: %u\n arraytype: %s\n algo: %s\n",
+    //         array_size,
+    //         array_type.c_str(),
+    //         algorithm.c_str());
+    //     #endif
+    // }
+    
+    #if DEBUG
+    printf("arraysize: %u\n arraytype: %s\n algo: %s\n",
+        array_size,
+        array_type.c_str(),
+        algorithm.c_str());
+    #endif
+    
+    /****************** generate the data (temp) ***********************/
+    main_vector={1,2,3,4};
+
+    if (taskid==0){
+        for (unsigned int element : main_vector) {
+            printf("&d",element);
+        }
     }
+
+    /********************** sort the data *****************************/
+    if (algorithm=="bitonic"){
+        bitonic_sort(main_vector, array_size, worker_comm);
+    }
+    else if (algorithm=="column"){
+        column_sort(main_vector, array_size, worker_comm);
+    }
+    else if (algorithm=="merge"){
+        merge_sort(main_vector, array_size, worker_comm);
+    }
+    else if (algorithm=="radix"){
+        radix_sort(main_vector, &worker_comm, argv);
+    }
+    else if (algorithm=="sample"){
+        sample_sort(main_vector, array_size, worker_comm);
+    }
+    else{
+        printf("Invalid algorithm");
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+
+    // validate it
+    bool is_everyone_sorted = sort_validation(main_vector, taskid, numtasks, MPI_COMM_WORLD);
+    for (unsigned int i = 0; i < numtasks; ++i){
+        MPI_Barrier(MPI_COMM_WORLD);
+        if (i == taskid){
+            printf("DEBUG [p%d]: is_everyone_sorted = %d.\n", taskid, is_everyone_sorted);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
 
     // end main region
     CALI_MARK_END(main);
