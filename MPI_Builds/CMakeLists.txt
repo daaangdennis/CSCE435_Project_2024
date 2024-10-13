@@ -40,6 +40,14 @@ add_executable(test_sort_validation
     tests/test_sort_validation.cpp
 )
 
+# executable to test validation script
+add_executable(test_samplesort
+    algorithms/decentralized_generation.cpp
+    algorithms/samplesort.cpp
+    algorithms/sort_validation.cpp
+    tests/test_samplesort.cpp
+)
+
 message(STATUS "MPI includes : ${MPI_INCLUDE_PATH}")
 message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
 message(STATUS "Adiak includes : ${adiak_INCLUDE_DIRS}")
@@ -50,4 +58,4 @@ include_directories(${adiak_INCLUDE_DIRS})
 target_link_libraries(main PRIVATE MPI::MPI_CXX caliper)
 target_link_libraries(test_decentralized_generation PRIVATE MPI::MPI_CXX caliper)
 target_link_libraries(test_sort_validation PRIVATE MPI::MPI_CXX caliper)
-
+target_link_libraries(test_samplesort PRIVATE MPI::MPI_CXX caliper)

@@ -10,7 +10,30 @@
 #include <caliper/cali-manager.h>
 #include <adiak.hpp>
 
+#include <algorithm>
+#include <iostream>
+#include <numeric>
+#include <stdexcept>
+#include <utility>
+#include <vector>
 
-int sample_sort(std::vector<unsigned int> main_vector, unsigned int input_size, MPI_Comm worker_comm);
+/*
+    - input
+        - local_seq: locally stored sequence
+        - pid: processor id
+        - num_processors: number of processors running in parallel
+        - comm: communicator
+        - k: oversampling factor (how many number to sample from the local sequence)
+    - output: modifies the local sequence on each processor, where combining these local sequences result in a sorted global sequence
+    - assumptions:
+        - more than 1 processor running in parallel
+        - 64-bit system (i.e. sizeof(unsigned long long) == sizeof(size_t))
+        - 0 < K <= local_seq.size()
+*/
+void samplesort(
+    std::vector<unsigned int>& local_seq, 
+    const int& pid, const int& num_processors, const MPI_Comm& comm,
+    const unsigned long long& K
+);
 
 #endif
