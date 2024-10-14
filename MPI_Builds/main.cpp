@@ -44,6 +44,9 @@ int main(int argc, char *argv[])
     const char* comp = "comp";                              // all computation related functions
     const char* comp_small = "comp_small";                  // sorting a few values
     const char* comp_large = "comp_large";                  // sorting values in the array
+    const char* comp_large = "comp_large";                  // sorting values in the array
+    const char* correctness_check = "correctness_check";    // checking correctness of array
+
 
     if (argc != 4)
     {
@@ -116,6 +119,7 @@ int main(int argc, char *argv[])
     //     }
     // }
 
+    CALI_MARK_BEGIN(data_init_runtime);
     std::vector<unsigned int> main_vector;
     /********************** generate the data *****************************/
     if (array_type=="sorted"){
@@ -134,6 +138,7 @@ int main(int argc, char *argv[])
         printf("Invalid array type");
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
+    CALI_MARK_END(data_init_runtime);
 
     /********************** sort the data *****************************/
     if (algorithm=="bitonic"){
@@ -157,15 +162,23 @@ int main(int argc, char *argv[])
     }
 
     // validate it
+    CALI_MARK_BEGIN(correctness_check);
     bool is_everyone_sorted = sort_validation(main_vector, taskid, numtasks, MPI_COMM_WORLD);
-    for (unsigned int i = 0; i < numtasks; ++i){
-        MPI_Barrier(MPI_COMM_WORLD);
-        if (i == taskid){
-            printf("DEBUG [p%d]: is_everyone_sorted = %d.\n", taskid, is_everyone_sorted);
-        }
-        MPI_Barrier(MPI_COMM_WORLD);
+    // for (unsigned int i = 0; i < numtasks; ++i){
+    //     MPI_Barrier(MPI_COMM_WORLD);
+    //     if (i == taskid){
+    //         printf("DEBUG [p%d]: is_everyone_sorted = %d.\n", taskid, is_everyone_sorted);
+    //     }
+    //     MPI_Barrier(MPI_COMM_WORLD);
+    // }
+    // MPI_Barrier(MPI_COMM_WORLD);
+    if (is_everyone_sorted) {
+        printf("Sequence is sorted.");
     }
-    MPI_Barrier(MPI_COMM_WORLD);
+    else {
+        printf("Sequence is NOT sorted.")
+    }
+    CALI_MARK_END(correctness_check);
 
     // end main region
     CALI_MARK_END(main);
