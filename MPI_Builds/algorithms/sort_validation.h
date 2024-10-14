@@ -22,7 +22,7 @@
     - output: true if the global sequence is sorted, false otherwise
     - assumptions:
         - more than 1 processor running in parallel
-        - 64-bit system (i.e. sizeof(unsigned long long) == sizeof(size_t))
+        - 64-bit system (i.e. sizeof(size_t) == sizeof(unsigned long long))
 */
 bool sort_validation(const std::vector<unsigned int>& local_seq, const int& pid, const int& num_processors, const MPI_Comm& comm);
 

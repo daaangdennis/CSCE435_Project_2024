@@ -24,10 +24,12 @@
         - num_processors: number of processors running in parallel
         - comm: communicator
         - k: oversampling factor (how many number to sample from the local sequence)
-    - output: modifies the local sequence on each processor, where combining these local sequences result in a sorted global sequence
+    - output: 
+        - modifies the local sequence on each processor
+        - ensuring concatenated local sequences result in a sorted global sequence
     - assumptions:
         - more than 1 processor running in parallel
-        - 64-bit system (i.e. sizeof(unsigned long long) == sizeof(size_t))
+        - 64-bit system (i.e. sizeof(size_t) == sizeof(unsigned long long))
         - 0 < K <= local_seq.size()
 */
 void samplesort(
