@@ -24,7 +24,7 @@
 #include <random>
 
 #define MASTER 0 /* taskid of first task */
-#define DEBUG 1 /* print debugging */
+#define DEBUG 0 /* print debugging */
 /*
 example debug usage:
 
@@ -43,7 +43,6 @@ int main(int argc, char *argv[])
     const char* comm_large = "comm_large";                  // sending all local values
     const char* comp = "comp";                              // all computation related functions
     const char* comp_small = "comp_small";                  // sorting a few values
-    const char* comp_large = "comp_large";                  // sorting values in the array
     const char* comp_large = "comp_large";                  // sorting values in the array
     const char* correctness_check = "correctness_check";    // checking correctness of array
 
@@ -84,6 +83,23 @@ int main(int argc, char *argv[])
     cali_init();
     cali::ConfigManager mgr;
     mgr.start();
+
+    // Metadata collection
+    adiak::init(NULL);
+    adiak::launchdate();    // launch date of the job
+    adiak::libraries();     // Libraries used
+    adiak::cmdline();       // Command line used to launch the job
+    adiak::clustername();   // Name of the cluster
+    adiak::value("algorithm", algorithm); // The name of the algorithm you are using (e.g., "merge", "bitonic")
+    adiak::value("programming_model", "mpi"); // e.g. "mpi"
+    adiak::value("data_type", "unsigned int"); // The datatype of input elements (e.g., double, int, float)
+    adiak::value("size_of_data_type", sizeof(unsigned int)); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
+    adiak::value("input_size", array_size); // The number of elements in input dataset (1000)
+    adiak::value("input_type", array_type); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
+    adiak::value("num_procs", numtasks); // The number of processors (MPI ranks)
+    adiak::value("scalability", "strong"); // The scalability of your algorithm. choices: ("strong", "weak")
+    adiak::value("group_num", 25); // The number of your group (integer, e.g., 1, 10)
+    adiak::value("implementation_source", "online"); // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
 
     // start main region
     // std::vector<unsigned int> main_vector(array_size, 0);
@@ -172,11 +188,13 @@ int main(int argc, char *argv[])
     //     MPI_Barrier(MPI_COMM_WORLD);
     // }
     // MPI_Barrier(MPI_COMM_WORLD);
-    if (is_everyone_sorted) {
-        printf("Sequence is sorted.");
-    }
-    else {
-        printf("Sequence is NOT sorted.")
+    if (taskid == 0) {
+        if (is_everyone_sorted) {
+            printf("Sequence is sorted.");
+        }
+        else {
+            printf("Sequence is NOT sorted.");
+        }
     }
     CALI_MARK_END(correctness_check);
 
