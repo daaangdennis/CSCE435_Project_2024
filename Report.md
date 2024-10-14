@@ -349,27 +349,13 @@ CALI_MARK_END("comp_large");
 CALI_MARK_END("comp");
 ```
 
-### **Calltree Example**:
+### **Calltrees**:
 ```
-# MPI Mergesort
-4.695 main
-├─ 0.001 MPI_Comm_dup
-├─ 0.000 MPI_Finalize
-├─ 0.000 MPI_Finalized
-├─ 0.000 MPI_Init
-├─ 0.000 MPI_Initialized
-├─ 2.599 comm
-│  ├─ 2.572 MPI_Barrier
-│  └─ 0.027 comm_large
-│     ├─ 0.011 MPI_Gather
-│     └─ 0.016 MPI_Scatter
-├─ 0.910 comp
-│  └─ 0.909 comp_large
-├─ 0.201 data_init_runtime
-└─ 0.440 correctness_check
+# Bitonic Sort
 ```
+
 ```
-# MPI samplesort
+# Sample Sort
 0.027 main
 ├─ 0.000 MPI_Comm_dup
 ├─ 0.000 MPI_Finalize
@@ -396,6 +382,18 @@ CALI_MARK_END("comp");
       ├─ 0.005 comp_local_to_buckets
       ├─ 0.000 comp_sampling_local
       └─ 0.005 comp_sort_recv_buf
+```
+
+```
+# Merge Sort
+```
+
+```
+# Radix Sort
+```
+
+```
+# Column Sort
 ```
 
 ### 3b. Collect Metadata
