@@ -89,13 +89,9 @@ void bitonic_sort(std::vector<unsigned int>& local_seq, const int& taskid, const
                 const auto direction = ((taskid & step) == 0) ? 0 : 1;
 
                 auto partner_seq = std::vector<unsigned int>(local_n);
-                if (taskid < partnerid) {
-                    MPI_Send(local_seq.data(), local_n, MPI_UNSIGNED, partnerid, 0, comm);
-                    MPI_Recv(partner_seq.data(), local_n, MPI_UNSIGNED, partnerid, 0, comm, MPI_STATUS_IGNORE);
-                } else {
-                    MPI_Recv(partner_seq.data(), local_n, MPI_UNSIGNED, partnerid, 0, comm, MPI_STATUS_IGNORE);
-                    MPI_Send(local_seq.data(), local_n, MPI_UNSIGNED, partnerid, 0, comm);
-                }
+                MPI_Sendrecv(local_seq.data(), local_n, MPI_UNSIGNED, partnerid, 0,
+                                partner_seq.data(), local_n, MPI_UNSIGNED, partnerid, 0,
+                                comm, MPI_STATUS_IGNORE);
 
                 auto merged_seq = std::vector<unsigned int>(local_n * 2);
                 std::merge(local_seq.begin(), local_seq.end(), partner_seq.begin(), partner_seq.end(), merged_seq.begin());
