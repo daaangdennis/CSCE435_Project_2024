@@ -352,6 +352,26 @@ CALI_MARK_END("comp");
 ### **Calltrees**:
 ```
 # Bitonic Sort
+0.666 main
+├─ 0.000 MPI_Init
+├─ 0.088 main
+│  ├─ 0.003 data_init_runtime
+│  ├─ 0.012 comp
+│  │  ├─ 0.010 comp_sort_local
+│  │  └─ 0.003 comp_sort_combined
+│  ├─ 0.057 comm
+│  │  ├─ 0.023 comm_small
+│  │  │  └─ 0.023 MPI_Sendrecv
+│  │  └─ 0.034 MPI_Barrier
+│  └─ 0.014 correctness_check
+│     ├─ 0.000 MPI_Recv
+│     ├─ 0.000 MPI_Send
+│     ├─ 0.013 MPI_Reduce
+│     └─ 0.000 MPI_Bcast
+├─ 0.000 MPI_Finalize
+├─ 0.000 MPI_Initialized
+├─ 0.000 MPI_Finalized
+└─ 0.020 MPI_Comm_dup
 ```
 
 ```
