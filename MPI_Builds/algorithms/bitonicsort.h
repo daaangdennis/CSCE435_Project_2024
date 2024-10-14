@@ -10,7 +10,10 @@
 #include <caliper/cali-manager.h>
 #include <adiak.hpp>
 
+#include <algorithm>
+#include <vector>
 
-int bitonic_sort(std::vector<unsigned int>& local_seq, const int& taskid, const int& numtasks, const MPI_Comm& comm);
+
+void bitonic_sort(std::vector<unsigned int>& local_seq, const int& taskid, const int& numtasks, const MPI_Comm& comm);
 
 #endif
