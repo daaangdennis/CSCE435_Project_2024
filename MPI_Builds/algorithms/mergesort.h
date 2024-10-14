@@ -5,12 +5,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <vector>
+#include <algorithm>
+#include <numeric>
 
 #include <caliper/cali.h>
 #include <caliper/cali-manager.h>
 #include <adiak.hpp>
 
 
-int merge_sort(std::vector<unsigned int> main_vector, unsigned int input_size, MPI_Comm worker_comm);
+int merge_sort(std::vector<unsigned int> main_vector, unsigned int input_size, const int& numtasks, MPI_Comm worker_comm);
 
 #endif
