@@ -1,40 +1,96 @@
 #include "radixsort.h"
 
-int radix_sort(std::vector<unsigned int> main_vector, MPI_Comm* worker_comm, char** argv) {
-    CALI_CXX_MARK_FUNCTION;
+unsigned bits(unsigned x, int k, int j) {
+    return (x >> k) & ~(~0u << j);
+}
 
-    // parse argv
-    unsigned int array_size;
-    std::string array_type, algorithm;
+std::vector<int> radix_sort(std::vector<int>& a, std::vector<Bucket>& buckets, const int P, const int rank, int& n) {
+    std::vector<std::vector<int>> count(B, std::vector<int>(P));
+    std::vector<int> l_count(B);
+    int l_B = B / P;
+    std::vector<std::vector<int>> p_sum(l_B, std::vector<int>(P));
 
-    try {
-        array_size = round((pow(2, std::stoi(argv[1]))));
-        array_type = std::string(argv[2]);
-        algorithm = std::string(argv[3]);
-    } catch (const std::exception &e) {
-        printf("Invalid args.\n");
-        return 1;
+    MPI_Request req;
+    MPI_Status stat;
+
+    for (int pass = 0; pass < N; pass++) {
+        // init counts arrays
+        for (int j = 0; j < B; j++) {
+            count[j][rank] = 0;
+            l_count[j] = 0;
+            buckets[j].array.clear();
+        }
+
+        // count items per bucket
+        for (int i = 0; i < n; i++) {
+            unsigned int idx = bits(a[i], pass*g, g);
+            count[idx][rank]++;
+            l_count[idx]++;
+            buckets[idx].add_item(a[i]);
+        }
+
+        // do one-to-all transpose
+        for (int p = 0; p < P; p++) {
+            if (p != rank) {
+                MPI_Isend(l_count.data(), B, MPI_INT, p, COUNTS_TAG_NUM, MPI_COMM_WORLD, &req);
+            }
+        }
+
+        // receive counts from others
+        for (int p = 0; p < P; p++) {
+            if (p != rank) {
+                MPI_Recv(l_count.data(), B, MPI_INT, p, COUNTS_TAG_NUM, MPI_COMM_WORLD, &stat);
+
+                // populate counts per bucket for other processes
+                for (int i = 0; i < B; i++) {
+                    count[i][p] = l_count[i];
+                }
+            }
+        }
+
+        // calculate new size based on values received from all processes
+        int new_size = 0;
+        for (int j = 0; j < l_B; j++) {
+            int idx = j + rank * l_B;
+            for (int p = 0; p < P; p++) {
+                p_sum[j][p] = new_size;
+                new_size += count[idx][p];
+            }
+        }
+
+        // reallocate array if newly calculated size is larger
+        if (new_size > n) {
+            a.resize(new_size);
+        }
+
+        // send keys of this process to others
+        for (int j = 0; j < B; j++) {
+            int p = j / l_B;   // determine which process this bucket belongs to
+            int p_j = j % l_B; // transpose to that process local bucket index
+            if (p != rank && !buckets[j].array.empty()) {
+                MPI_Isend(buckets[j].array.data(), buckets[j].array.size(), MPI_INT, p, p_j, MPI_COMM_WORLD, &req);
+            }
+        }
+
+        // receive keys from other processes
+        for (int j = 0; j < l_B; j++) {
+            int idx = j + rank * l_B;
+            for (int p = 0; p < P; p++) {
+                int b_count = count[idx][p];
+                if (b_count > 0) {
+                    int* dest = &a[p_sum[j][p]];
+                    if (rank != p) {
+                        MPI_Recv(dest, b_count, MPI_INT, p, j, MPI_COMM_WORLD, &stat);
+                    } else {
+                        std::copy(buckets[idx].array.begin(), buckets[idx].array.end(), dest);
+                    }
+                }
+            }
+        }
+
+        // update new size
+        n = new_size;
     }
 
-    int taskid, numtasks; 
-    MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
-    MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
-
-    adiak::init(NULL);
-    adiak::launchdate();    // launch date of the job
-    adiak::libraries();     // Libraries used
-    adiak::cmdline();       // Command line used to launch the job
-    adiak::clustername();   // Name of the cluster
-    adiak::value("algorithm", "radix"); // The name of the algorithm you are using (e.g., "merge", "bitonic")
-    adiak::value("programming_model", "mpi"); // e.g. "mpi"
-    adiak::value("data_type", "int"); // The datatype of input elements (e.g., double, int, float)
-    adiak::value("size_of_data_type", sizeof(int)); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
-    adiak::value("input_size", array_size); // The number of elements in input dataset (1000)
-    adiak::value("input_type", array_type); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
-    adiak::value("num_procs", numtasks); // The number of processors (MPI ranks)
-    adiak::value("scalability", "temp"); // The scalability of your algorithm. choices: ("strong", "weak")
-    adiak::value("group_num", 25); // The number of your group (integer, e.g., 1, 10)
-    adiak::value("implementation_source", "temp"); // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
-
-    return 0;
+    return a;
 }
