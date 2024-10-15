@@ -6,10 +6,18 @@
 make
 ```
 
-### run grace main
+### array type flags
 ```
-sbatch mpi.grace_job <array size> <array type> <algorithm> <processes>
-sbatch mpi.grace_job 10 random radix 2
+0: sorted
+1: reverse
+2: 1% perturbed 
+3: random
+```
+
+### run radix sort
+```
+sbatch radix.grace_job 2^<array size> <array type> <processes>
+sbatch radix.grace_job 10 3 2
 ```
 
 ### run grace tests

@@ -48,6 +48,12 @@ add_executable(test_samplesort
     tests/test_samplesort.cpp
 )
 
+# radix sort
+add_executable(radixsort
+    algorithms/decentralized_generation.cpp
+    radixsort.cpp
+)
+
 message(STATUS "MPI includes : ${MPI_INCLUDE_PATH}")
 message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
 message(STATUS "Adiak includes : ${adiak_INCLUDE_DIRS}")
@@ -59,3 +65,5 @@ target_link_libraries(main PRIVATE MPI::MPI_CXX caliper)
 target_link_libraries(test_decentralized_generation PRIVATE MPI::MPI_CXX caliper)
 target_link_libraries(test_sort_validation PRIVATE MPI::MPI_CXX caliper)
 target_link_libraries(test_samplesort PRIVATE MPI::MPI_CXX caliper)
+target_link_libraries(radixsort PRIVATE MPI::MPI_CXX caliper)
+
