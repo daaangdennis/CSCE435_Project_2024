@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
         //column_sort(main_vector, array_size, worker_comm);
     }
     else if (algorithm=="merge"){
-        merge_sort(main_vector, taskid, numtasks, MPI_COMM_WORLD);
+        mergesort(main_vector, taskid, numtasks, MPI_COMM_WORLD);
     }
     else if (algorithm=="radix"){
         //radix_sort(main_vector, &worker_comm, argv);
