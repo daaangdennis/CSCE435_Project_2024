@@ -54,6 +54,13 @@ add_executable(radixsort
     radixsort.cpp
 )
 
+# merge sort
+add_executable(mergsort
+    algorithms/decentralized_generation.cpp
+    algorithms/mergesort.cpp
+    algorithms/sort_validation.cpp
+)
+
 message(STATUS "MPI includes : ${MPI_INCLUDE_PATH}")
 message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
 message(STATUS "Adiak includes : ${adiak_INCLUDE_DIRS}")
