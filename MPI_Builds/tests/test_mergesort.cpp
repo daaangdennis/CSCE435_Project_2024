@@ -79,7 +79,7 @@ int main (int argc, char *argv[]) {
         // sorting
         try {
             CALI_MARK_BEGIN(sort_runtime);
-            samplesort(local_seq, pid, num_processors, MPI_COMM_WORLD, num_processors);
+            mergesort(local_seq, pid, num_processors, MPI_COMM_WORLD, num_processors);
             CALI_MARK_END(sort_runtime);
         } catch(const std::invalid_argument& error) {
             printf(error.what());
