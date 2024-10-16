@@ -28,4 +28,4 @@ module load GCCcore/8.3.0
 
 CALI_CONFIG="spot(output=radix-p${processes}-a${array_size}.cali, \
     time.variance,profile.mpi)" \
-mpirun -np $processes ./tests/test_mergesort
+mpirun -np $processes ./test_mergesort
