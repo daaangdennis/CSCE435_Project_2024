@@ -1,6 +1,6 @@
 #include "mergesort.h"
 
-void merge_sort(std::vector<unsigned int>& local_seq, const int& taskid, const int& numtasks, const MPI_Comm& comm) 
+void mergesort(std::vector<unsigned int>& local_seq, const int& taskid, const int& numtasks, const MPI_Comm& comm) 
 {
     // Begin computation section
     CALI_MARK_BEGIN("comp");
