@@ -66,5 +66,4 @@ target_link_libraries(test_decentralized_generation PRIVATE MPI::MPI_CXX caliper
 target_link_libraries(test_sort_validation PRIVATE MPI::MPI_CXX caliper)
 target_link_libraries(test_samplesort PRIVATE MPI::MPI_CXX caliper)
 target_link_libraries(radixsort PRIVATE MPI::MPI_CXX caliper)
-target_link_libraries(mergesort PRIVATE MPI::MPI_CXX caliper)
 
