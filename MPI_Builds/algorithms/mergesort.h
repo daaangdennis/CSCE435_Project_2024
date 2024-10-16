@@ -14,6 +14,6 @@
 #include <adiak.hpp>
 
 
-int mergesort(std::vector<unsigned int>& local_seq, const int& pid, const int& num_processors, const MPI_Comm& comm);
+void mergesort(std::vector<unsigned int>& local_seq, const int& pid, const int& num_processors, const MPI_Comm& comm);
 
 #endif
