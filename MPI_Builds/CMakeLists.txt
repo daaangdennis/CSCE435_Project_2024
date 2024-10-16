@@ -59,6 +59,7 @@ add_executable(mergsort
     algorithms/decentralized_generation.cpp
     algorithms/mergesort.cpp
     algorithms/sort_validation.cpp
+    tests/test_mergesort.cpp
 )
 
 message(STATUS "MPI includes : ${MPI_INCLUDE_PATH}")
