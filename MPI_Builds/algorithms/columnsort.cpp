@@ -24,12 +24,12 @@ void printMatrix(const std::vector<unsigned int> &local_matrix, unsigned int loc
             {
                 for (unsigned int j = 0; j < local_s; ++j)
                 {
-                    std::cout << global_matrix[p * local_r * local_s + i * local_s + j] << " ";
+                    printf("%u ", global_matrix[p * local_r * local_s + i * local_s + j]);
                 }
             }
-            std::cout << "\n";
+            printf("\n");
         }
-        std::cout << "\n";
+        printf("\n");
     }
 }
 
@@ -195,47 +195,47 @@ int column_sort(std::vector<unsigned int> main_vector, unsigned int input_size, 
                 local_matrix.data(), local_r * local_s, MPI_UNSIGNED, 0, worker_comm);
 
     if (rank == 0)
-        std::cout << "Start:\n";
+        printf("Start:\n");
     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     sortColumns(local_matrix, local_r, local_s);
     if (rank == 0)
-        std::cout << "Step 1: Sort columns\n";
+        printf("Step 1: Sort columns\n");
     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     transpose(local_matrix, local_r, local_s, rank, size, worker_comm);
     if (rank == 0)
-        std::cout << "Step 2: Transpose\n";
+        printf("Step 2: Transpose\n");
     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     sortColumns(local_matrix, local_r, local_s);
     if (rank == 0)
-        std::cout << "Step 3: Sort columns\n";
+        printf("Step 3: Sort columns\n");
     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     untranspose(local_matrix, local_r, local_s, rank, size, worker_comm);
     if (rank == 0)
-        std::cout << "Step 4: Untranspose\n";
+        printf("Step 4: Untranspose\n");
     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     sortColumns(local_matrix, local_r, local_s);
     if (rank == 0)
-        std::cout << "Step 5: Sort columns\n";
+        printf("Step 5: Sort columns\n");
     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     shift(local_matrix, local_r, local_s, rank, size, worker_comm);
     if (rank == 0)
-        std::cout << "Step 6: Shift\n";
+        printf("Step 6: Shift\n");
     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     sortColumns(local_matrix, local_r, local_s);
     if (rank == 0)
-        std::cout << "Step 7: Sort columns\n";
+        printf("Step 7: Sort columns\n");
     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     unshift(local_matrix, local_r, local_s, rank, size, worker_comm);
     if (rank == 0)
-        std::cout << "Step 8: Unshift (Final result)\n";
+        printf("Step 8: Unshift (Final result)\n");
     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     MPI_Gather(local_matrix.data(), local_r * local_s, MPI_UNSIGNED,

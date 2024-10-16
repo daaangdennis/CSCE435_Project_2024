@@ -170,7 +170,24 @@ int main(int argc, char *argv[])
     }
     else if (algorithm == "column")
     {
-        // column_sort(main_vector, array_size, worker_comm);
+        unsigned int r = array_size / numtasks;
+        unsigned int s = numtasks;
+
+        // Check if r % s == 0
+        if (array_size % numtasks != 0)
+        {
+            printf("Error: The total number of elements must be divisible by the number of processors (columns).\n");
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+
+        // Check if r > 2*(s-1)^2
+        if (r <= 2 * pow((s - 1), 2))
+        {
+            printf("Error: The number of rows (r) must be greater than 2 * (s-1)^2 for Columnsort.\n");
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+
+        column_sort(main_vector, array_size, MPI_COMM_WORLD);
     }
     else if (algorithm == "merge")
     {
