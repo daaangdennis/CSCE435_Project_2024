@@ -436,7 +436,6 @@ CALI_MARK_END("comp");
 
 ```
 # Radix Sort
-```
 0.393 main
 ├─ 0.000 MPI_Init
 ├─ 0.026 main
@@ -457,6 +456,8 @@ CALI_MARK_END("comp");
 ├─ 0.000 MPI_Initialized
 ├─ 0.000 MPI_Finalized
 └─ 0.000 MPI_Comm_dup
+```
+
 ```
 # Column Sort
 ```
