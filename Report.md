@@ -406,6 +406,32 @@ CALI_MARK_END("comp");
 
 ```
 # Merge Sort
+0.624 main
+├─ 0.000 MPI_Init
+├─ 0.079 main
+│  ├─ 0.003 data_init_runtime
+│  ├─ 0.006 comp
+│  │  ├─ 0.005 comp_small
+│  │  └─ 0.002 comp_large
+│  ├─ 0.049 comm
+│  │  ├─ 0.049 comm_small
+│  │  │  ├─ 0.008 MPI_Recv
+│  │  │  ├─ 0.000 MPI_Send
+│  │  │  ├─ 0.045 MPI_Barrier
+│  │  │  └─ 0.000 MPI_Bcast
+│  │  └─ 0.000 comm_large
+│  │     ├─ 0.000 MPI_Recv
+│  │     ├─ 0.000 MPI_Send
+│  │     └─ 0.000 MPI_Scatterv
+│  └─ 0.020 correctness_check
+│     ├─ 0.003 MPI_Recv
+│     ├─ 0.000 MPI_Send
+│     ├─ 0.017 MPI_Reduce
+│     └─ 0.000 MPI_Bcast
+├─ 0.000 MPI_Finalize
+├─ 0.000 MPI_Initialized
+├─ 0.000 MPI_Finalized
+└─ 0.020 MPI_Comm_dup
 ```
 
 ```
