@@ -173,6 +173,13 @@ int main(int argc, char *argv[])
         unsigned int r = array_size / numtasks;
         unsigned int s = numtasks;
 
+        printf("THIS IS IN MAIN: ");
+        for (unsigned int i = 0; i < main_vector.size(); i++)
+        {
+            printf("%u ", main_vector[i]);
+        }
+        printf("\n\n");
+
         // Check if r % s == 0
         if (array_size % numtasks != 0)
         {
