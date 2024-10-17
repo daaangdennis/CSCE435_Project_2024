@@ -4,35 +4,36 @@
 #include <cmath>
 #include <limits>
 #include <iostream>
+#include <caliper/cali.h>
 
 // Print the matrix across all workers
-void printMatrix(const std::vector<unsigned int> &local_matrix, unsigned int local_r, unsigned int local_s, int rank, int size, MPI_Comm comm)
-{
-    std::vector<unsigned int> global_matrix;
-    if (rank == 0)
-    {
-        global_matrix.resize(local_r * local_s * size);
-    }
+// void printMatrix(const std::vector<unsigned int> &local_matrix, unsigned int local_r, unsigned int local_s, int rank, int size, MPI_Comm comm)
+// {
+//     std::vector<unsigned int> global_matrix;
+//     if (rank == 0)
+//     {
+//         global_matrix.resize(local_r * local_s * size);
+//     }
 
-    MPI_Gather(local_matrix.data(), local_r * local_s, MPI_UNSIGNED,
-               global_matrix.data(), local_r * local_s, MPI_UNSIGNED, 0, comm);
+//     MPI_Gather(local_matrix.data(), local_r * local_s, MPI_UNSIGNED,
+//                global_matrix.data(), local_r * local_s, MPI_UNSIGNED, 0, comm);
 
-    if (rank == 0)
-    {
-        for (unsigned int i = 0; i < local_r; ++i)
-        {
-            for (int p = 0; p < size; ++p)
-            {
-                for (unsigned int j = 0; j < local_s; ++j)
-                {
-                    printf("%u ", global_matrix[p * local_r * local_s + i * local_s + j]);
-                }
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-}
+//     if (rank == 0)
+//     {
+//         for (unsigned int i = 0; i < local_r; ++i)
+//         {
+//             for (int p = 0; p < size; ++p)
+//             {
+//                 for (unsigned int j = 0; j < local_s; ++j)
+//                 {
+//                     //printf("%u ", global_matrix[p * local_r * local_s + i * local_s + j]);
+//                 }
+//             }
+//             //printf("\n");
+//         }
+//         //printf("\n");
+//     }
+// }
 
 // Sort each column of the local matrix
 void sortColumns(std::vector<unsigned int> &local_matrix, unsigned int local_r, unsigned int local_s)
@@ -187,109 +188,114 @@ void unshift(std::vector<unsigned int> &local_matrix, unsigned int &local_r, uns
 
 int column_sort(std::vector<unsigned int> &main_vector, unsigned int input_size, MPI_Comm worker_comm)
 {
-    int rank, size;
+    // Caliper: mark the entire function
+    CALI_CXX_MARK_FUNCTION;
 
+    int rank, size;
     MPI_Comm_rank(worker_comm, &rank);
     MPI_Comm_size(worker_comm, &size);
 
-    // Compute rows (r) and columns (s) for each worker
-    unsigned int total_elements = input_size * input_size; // Total elements in the matrix
-    unsigned int r = input_size / size;                    // Rows per process (assuming divisible)
-    unsigned int s = input_size;                           // Number of columns (fixed)
+    unsigned int total_elements = input_size * input_size;
+    unsigned int r = input_size / size;
+    unsigned int s = input_size;
 
-    unsigned int local_r = r;        // Rows handled by each worker
-    unsigned int local_s = s / size; // Columns per worker
+    unsigned int local_r = r;
+    unsigned int local_s = s / size;
 
     if (rank == 0)
     {
-        printf("r (rows per worker) = %u\n", r);
-        printf("s (total number of columns) = %u\n", s);
-        printf("input_size = %u\n", input_size);
-        printf("\n\n");
+        // printf("r (rows per worker) = %u\n", r);
+        // printf("s (total number of columns) = %u\n", s);
+        // printf("input_size = %u\n", input_size);
+        // printf("\n\n");
     }
 
-    // Scatter the matrix among processes (each receives a submatrix of local_r x local_s)
     std::vector<unsigned int> local_matrix(local_r * local_s);
-
     MPI_Scatter(main_vector.data(), local_r * local_s, MPI_UNSIGNED,
                 local_matrix.data(), local_r * local_s, MPI_UNSIGNED, 0, worker_comm);
 
-    // Print the local matrix at each process for debugging
     for (int current_rank = 0; current_rank < size; current_rank++)
     {
         if (rank == current_rank)
         {
-            printf("Rank %d Initial Matrix:\n", rank);
+            // printf("Rank %d Initial Matrix:\n", rank);
             for (unsigned int i = 0; i < local_r; i++)
             {
                 for (unsigned int j = 0; j < local_s; j++)
                 {
-                    printf("%u ", local_matrix[i * local_s + j]);
+                    // printf("%u ", local_matrix[i * local_s + j]);
                 }
-                printf("\n");
+                // printf("\n");
             }
-            printf("\n");
+            // printf("\n");
         }
         MPI_Barrier(worker_comm);
     }
 
     // Step 1: Sort columns locally
+    CALI_CXX_MARK_LOOP_BEGIN(step1, "Step 1: Sort columns");
     sortColumns(local_matrix, local_r, local_s);
-
-    if (rank == 0)
-        printf("Step 1: Sort columns\n");
-    printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
+    CALI_CXX_MARK_LOOP_END(step1);
+    // if (rank == 0)
+    //     // printf("Step 1: Sort columns\n");
+    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     // Step 2: Transpose the matrix globally
+    CALI_CXX_MARK_LOOP_BEGIN(step2, "Step 2: Transpose");
     transpose(local_matrix, local_r, local_s, rank, size, worker_comm);
-
-    if (rank == 0)
-        printf("Step 2: Transpose\n");
-    printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
+    CALI_CXX_MARK_LOOP_END(step2);
+    // if (rank == 0)
+    //     // printf("Step 2: Transpose\n");
+    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     // Step 3: Sort columns again
+    CALI_CXX_MARK_LOOP_BEGIN(step3, "Step 3: Sort columns");
     sortColumns(local_matrix, local_r, local_s);
-
-    if (rank == 0)
-        printf("Step 3: Sort columns\n");
-    printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
+    CALI_CXX_MARK_LOOP_END(step3);
+    // if (rank == 0)
+    //     // printf("Step 3: Sort columns\n");
+    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     // Step 4: Untranspose the matrix
+    CALI_CXX_MARK_LOOP_BEGIN(step4, "Step 4: Untranspose");
     untranspose(local_matrix, local_r, local_s, rank, size, worker_comm);
-
-    if (rank == 0)
-        printf("Step 4: Untranspose\n");
-    printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
+    CALI_CXX_MARK_LOOP_END(step4);
+    // if (rank == 0)
+    //     // printf("Step 4: Untranspose\n");
+    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     // Step 5: Sort columns again
+    CALI_CXX_MARK_LOOP_BEGIN(step5, "Step 5: Sort columns");
     sortColumns(local_matrix, local_r, local_s);
-
-    if (rank == 0)
-        printf("Step 5: Sort columns\n");
-    printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
+    CALI_CXX_MARK_LOOP_END(step5);
+    // if (rank == 0)
+    //     // printf("Step 5: Sort columns\n");
+    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     // Step 6: Shift the matrix
+    CALI_CXX_MARK_LOOP_BEGIN(step6, "Step 6: Shift");
     shift(local_matrix, local_r, local_s, rank, size, worker_comm);
-
-    if (rank == 0)
-        printf("Step 6: Shift\n");
-    printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
+    CALI_CXX_MARK_LOOP_END(step6);
+    // if (rank == 0)
+    //     // printf("Step 6: Shift\n");
+    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     // Step 7: Sort columns again
+    CALI_CXX_MARK_LOOP_BEGIN(step7, "Step 7: Sort columns");
     sortColumns(local_matrix, local_r, local_s);
-
-    if (rank == 0)
-        printf("Step 7: Sort columns\n");
-    printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
+    CALI_CXX_MARK_LOOP_END(step7);
+    // if (rank == 0)
+    //     // printf("Step 7: Sort columns\n");
+    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
     // Step 8: Unshift the matrix
+    CALI_CXX_MARK_LOOP_BEGIN(step8, "Step 8: Unshift");
     unshift(local_matrix, local_r, local_s, rank, size, worker_comm);
+    CALI_CXX_MARK_LOOP_END(step8);
+    // if (rank == 0)
+    //     // printf("Step 8: Unshift (Final result)\n");
+    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
 
-    if (rank == 0)
-        printf("Step 8: Unshift (Final result)\n");
-    printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
-
-    // Gather the results back to the root process (rank 0)
     MPI_Gather(local_matrix.data(), local_r * local_s, MPI_UNSIGNED,
                main_vector.data(), local_r * local_s, MPI_UNSIGNED, 0, worker_comm);
 
