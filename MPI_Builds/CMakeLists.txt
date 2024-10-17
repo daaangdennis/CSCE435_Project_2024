@@ -16,38 +16,6 @@ add_executable(main
     main.cpp
 )
 
-# executable to test generation script
-add_executable(test_decentralized_generation
-    algorithms/bitonicsort.cpp
-    algorithms/columnsort.cpp
-    algorithms/decentralized_generation.cpp
-    algorithms/mergesort.cpp
-    algorithms/radixsort.cpp
-    algorithms/samplesort.cpp
-    algorithms/sort_validation.cpp
-    tests/test_decentralized_generation.cpp
-)
-
-# executable to test validation script
-add_executable(test_sort_validation
-    algorithms/bitonicsort.cpp
-    algorithms/columnsort.cpp
-    algorithms/decentralized_generation.cpp
-    algorithms/mergesort.cpp
-    algorithms/radixsort.cpp
-    algorithms/samplesort.cpp
-    algorithms/sort_validation.cpp
-    tests/test_sort_validation.cpp
-)
-
-# executable to test validation script
-add_executable(test_samplesort
-    algorithms/decentralized_generation.cpp
-    algorithms/samplesort.cpp
-    algorithms/sort_validation.cpp
-    tests/test_samplesort.cpp
-)
-
 # radix sort
 add_executable(radixsort
     algorithms/decentralized_generation.cpp
@@ -62,8 +30,5 @@ include_directories(${caliper_INCLUDE_DIR})
 include_directories(${adiak_INCLUDE_DIRS})
 
 target_link_libraries(main PRIVATE MPI::MPI_CXX caliper)
-target_link_libraries(test_decentralized_generation PRIVATE MPI::MPI_CXX caliper)
-target_link_libraries(test_sort_validation PRIVATE MPI::MPI_CXX caliper)
-target_link_libraries(test_samplesort PRIVATE MPI::MPI_CXX caliper)
 target_link_libraries(radixsort PRIVATE MPI::MPI_CXX caliper)
 
