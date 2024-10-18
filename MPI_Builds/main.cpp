@@ -138,7 +138,10 @@ int main(int argc, char *argv[])
     }
     else if (algorithm == "sample")
     {
-        samplesort(main_vector, taskid, numtasks, MPI_COMM_WORLD, numtasks);
+        // want to sample 0.1% of the global sequence size ideally, however this might not be possible if the sequence is short
+        unsigned long long ideal_K = 0.001 * array_size / numtasks;
+        unsigned long long K = (ideal_K > numtasks) ? ideal_K : numtasks;
+        samplesort(main_vector, taskid, numtasks, MPI_COMM_WORLD, K);
     }
     else
     {

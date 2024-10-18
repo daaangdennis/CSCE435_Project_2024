@@ -35,7 +35,7 @@ void samplesort(
         local_sample.at(local_sample.size() - 1) = local_seq.at(local_seq.size() - 1);
         if (K > 2){
             for (unsigned long long i = 1; i < local_sample.size() - 1; ++i) {
-                local_sample.at(i) = local_seq.at(i * ((local_seq.size() - 2) / (K - 1) + 1));
+                local_sample.at(i) = local_seq.at(i * ((local_seq.size() - 2) / (K - 1)));
             }
         }  
     }
