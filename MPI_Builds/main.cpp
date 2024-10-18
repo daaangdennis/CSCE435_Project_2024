@@ -83,11 +83,14 @@ int main(int argc, char *argv[])
     adiak::value("group_num", 25);                           // The number of your group (integer, e.g., 1, 10)
     adiak::value("implementation_source", "handwritten");    // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
 
-    printf("arraysize: %u\n arraytype: %s\n algo: %s\n",
+    if (taskid == 0) 
+    {
+        printf("arraysize: %u\n arraytype: %s\n algo: %s\n",
            array_size,
            array_type.c_str(),
-           algorithm.c_str());
-
+           algorithm.c_str()
+        );
+    }
     CALI_MARK_BEGIN(data_init_runtime);
     std::vector<unsigned int> main_vector;
     /********************** generate the data *****************************/
@@ -135,7 +138,7 @@ int main(int argc, char *argv[])
     }
     else if (algorithm == "sample")
     {
-        // sample_sort(main_vector, array_size, worker_comm);
+        samplesort(main_vector, taskid, numtasks, MPI_COMM_WORLD, numtasks);
     }
     else
     {
