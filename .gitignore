@@ -8,3 +8,9 @@
 **/test_sort_validation
 **/output*
 **/Jupyter_Files/.ipynb_checkpoints/*
+**/radix*
+MPI_Builds/2
+MPI_Builds/auto2.sh
+MPI_Builds/old.cpp
+MPI_Builds/pert/
+MPI_Builds/rand/
