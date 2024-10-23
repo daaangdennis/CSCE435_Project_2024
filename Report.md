@@ -568,6 +568,24 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
       - Input size of 2<sup>16</sup>:
         ![Strong Scaling Input 2^16](https://cdn.discordapp.com/attachments/671755660186222624/1298437760121573386/strong_scaling_16.jpg?ex=67198fe5&is=67183e65&hm=cbf55913a6dde51f27dae180ca208bd83f738d289db89176cb566de2b4d70ce9&)
 
+- ### Sample Sort
+  - ### Strong Scaling:
+    - Avg time/rank:
+      - Input size of 2<sup>28</sup>:
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort-strong-28.png)
+      - Input size of 2<sup>26</sup>:
+        ![Strong Scaling Input 2^26](Plots/Samplesort_Plots/samplesort-strong-26.png)
+      - Input size of 2<sup>24</sup>:
+        ![Strong Scaling Input 2^24](Plots/Samplesort_Plots/samplesort-strong-24.png)
+      - Input size of 2<sup>22</sup>:
+        ![Strong Scaling Input 2^22](Plots/Samplesort_Plots/samplesort-strong-22.png)
+      - Input size of 2<sup>20</sup>:
+        ![Strong Scaling Input 2^20](Plots/Samplesort_Plots/samplesort-strong-20.png)
+      - Input size of 2<sup>18</sup>:
+        ![Strong Scaling Input 2^18](Plots/Samplesort_Plots/samplesort-strong-18.png)
+      - Input size of 2<sup>16</sup>:
+        ![Strong Scaling Input 2^16](Plots/Samplesort_Plots/samplesort-strong-16.png)
+
 ## 5. Presentation
 
 Plots for the presentation should be as follows:
