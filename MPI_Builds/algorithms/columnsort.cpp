@@ -5,185 +5,255 @@
 #include <limits>
 #include <iostream>
 #include <caliper/cali.h>
+#include "columnsort.h"
 
-// Print the matrix across all workers
-// void printMatrix(const std::vector<unsigned int> &local_matrix, unsigned int local_r, unsigned int local_s, int rank, int size, MPI_Comm comm)
-// {
-//     std::vector<unsigned int> global_matrix;
-//     if (rank == 0)
-//     {
-//         global_matrix.resize(local_r * local_s * size);
-//     }
-
-//     MPI_Gather(local_matrix.data(), local_r * local_s, MPI_UNSIGNED,
-//                global_matrix.data(), local_r * local_s, MPI_UNSIGNED, 0, comm);
-
-//     if (rank == 0)
-//     {
-//         for (unsigned int i = 0; i < local_r; ++i)
-//         {
-//             for (int p = 0; p < size; ++p)
-//             {
-//                 for (unsigned int j = 0; j < local_s; ++j)
-//                 {
-//                     //printf("%u ", global_matrix[p * local_r * local_s + i * local_s + j]);
-//                 }
-//             }
-//             //printf("\n");
-//         }
-//         //printf("\n");
-//     }
-// }
-
-// Sort each column of the local matrix
-void sortColumns(std::vector<unsigned int> &local_matrix, unsigned int local_r, unsigned int local_s)
+// Function to print the status of the matrix
+void print_matrix(const std::vector<unsigned int> &vec, int r, int numtasks, const std::string &step, int taskid, MPI_Comm comm)
 {
-    for (unsigned int j = 0; j < local_s; ++j)
+    std::vector<unsigned int> full_vector;
+    if (taskid == 0)
     {
-        std::vector<unsigned int> column;
-        for (unsigned int i = 0; i < local_r; ++i)
+        full_vector.resize(r); // Resize to hold all elements
+    }
+
+    // Gather data from all tasks
+    MPI_Gather(vec.data(), r / numtasks, MPI_UNSIGNED, full_vector.data(), r / numtasks, MPI_UNSIGNED, 0, comm);
+
+    if (taskid == 0)
+    {
+        std::cout << step << ":\n";
+
+        // Print task IDs as column headers
+        for (int t = 0; t < numtasks; ++t)
         {
-            column.push_back(local_matrix[i * local_s + j]);
+            std::cout << "Task " << t << "\t";
         }
-        std::sort(column.begin(), column.end());
-        for (unsigned int i = 0; i < local_r; ++i)
+        std::cout << std::endl;
+
+        // Print each task's results in a formatted way
+        for (int i = 0; i < r / numtasks; ++i)
         {
-            local_matrix[i * local_s + j] = column[i];
+            for (int t = 0; t < numtasks; ++t)
+            {
+                std::cout << full_vector[t * (r / numtasks) + i] << '\t'; // Use tab for better formatting
+            }
+            std::cout << std::endl;
         }
+        std::cout << std::endl;
     }
 }
 
-// Transpose matrix across workers
-void transpose(std::vector<unsigned int> &local_matrix, unsigned int local_r, unsigned int local_s, int rank, int size, MPI_Comm comm)
+void parallel_sort_columns(std::vector<unsigned int> &vec, int taskid, int numtasks, MPI_Comm comm)
 {
-    std::vector<unsigned int> temp = local_matrix;
-    std::vector<unsigned int> global_matrix(local_r * local_s * size);
-
-    MPI_Allgather(temp.data(), local_r * local_s, MPI_UNSIGNED,
-                  global_matrix.data(), local_r * local_s, MPI_UNSIGNED, comm);
-
-    for (unsigned int i = 0; i < local_r; ++i)
-    {
-        for (unsigned int j = 0; j < local_s * size; ++j)
-        {
-            unsigned int global_idx = j * local_r + i;
-            unsigned int proc = global_idx / (local_r * local_s);
-            unsigned int local_idx = global_idx % (local_r * local_s);
-            if (proc == rank)
-            {
-                local_matrix[local_idx] = global_matrix[i * local_s * size + j];
-            }
-        }
-    }
+    std::sort(vec.begin(), vec.end());
 }
 
-// Reverse the transpose operation
-void untranspose(std::vector<unsigned int> &local_matrix, unsigned int local_r, unsigned int local_s, int rank, int size, MPI_Comm comm)
+void parallel_transpose_and_reshape(std::vector<unsigned int> &vec, int r, int s, int taskid, int numtasks, MPI_Comm comm)
 {
-    std::vector<unsigned int> temp = local_matrix;
-    std::vector<unsigned int> global_matrix(local_r * local_s * size);
+    int local_r = r / numtasks;
+    std::vector<unsigned int> reshaped_vector(local_r); // Vector to hold reshaped data
 
-    MPI_Allgather(temp.data(), local_r * local_s, MPI_UNSIGNED,
-                  global_matrix.data(), local_r * local_s, MPI_UNSIGNED, comm);
+    // Buffer to send and receive data for the transposition
+    std::vector<unsigned int> transposed_vector(local_r);
+    std::vector<unsigned int> recv_buffer(local_r);
 
-    for (unsigned int i = 0; i < local_r * size; ++i)
+    // Step 1: Transpose - exchanging elements between processes to get the right columns
+    for (int i = 0; i < local_r; ++i)
     {
-        for (unsigned int j = 0; j < local_s; ++j)
-        {
-            unsigned int global_idx = i * local_s + j;
-            unsigned int proc = global_idx / (local_r * local_s);
-            unsigned int local_idx = global_idx % (local_r * local_s);
-            if (proc == rank)
-            {
-                local_matrix[local_idx] = global_matrix[j * local_r * size + i];
-            }
-        }
+        // Compute source and destination positions
+        int global_index = taskid * local_r + i; // Global index in the original matrix
+        int source_col = global_index % numtasks;
+        int source_row = global_index / numtasks;
+
+        // Send elements to appropriate processes
+        int dest_task = source_col;
+        int send_offset = source_row;
+
+        MPI_Sendrecv(&vec[i], 1, MPI_UNSIGNED, dest_task, 0,
+                     &recv_buffer[i], 1, MPI_UNSIGNED, dest_task, 0,
+                     comm, MPI_STATUS_IGNORE);
     }
+
+    // Copy received elements into the reshaped vector
+    for (int i = 0; i < local_r; ++i)
+    {
+        transposed_vector[i] = recv_buffer[i];
+    }
+
+    // Step 2: Reshaping - reassign positions locally
+    for (int i = 0; i < local_r; ++i)
+    {
+        int new_row = i / numtasks;
+        int new_col = i % numtasks;
+        reshaped_vector[new_row * numtasks + new_col] = transposed_vector[i];
+    }
+
+    // Update the original vector with the reshaped data
+    vec = reshaped_vector;
 }
 
-// Shift the matrix to create new arrangement
-void shift(std::vector<unsigned int> &local_matrix, unsigned int &local_r, unsigned int &local_s, int rank, int size, MPI_Comm comm)
+void parallel_untranspose_and_reshape(std::vector<unsigned int> &vec, int r, int s, int taskid, int numtasks, MPI_Comm comm)
 {
-    unsigned int shift_amount = local_r * size / 2;
-    std::vector<unsigned int> global_matrix(local_r * local_s * size);
-    std::vector<unsigned int> shifted_global_matrix((local_r * size) * (local_s * size + 1), std::numeric_limits<unsigned int>::max());
+    int local_r = r / numtasks;
+    std::vector<unsigned int> untransposed_vector(local_r);
+    std::vector<unsigned int> recv_buffer(local_r);
+    std::vector<unsigned int> reshaped_vector(local_r);
 
-    MPI_Allgather(local_matrix.data(), local_r * local_s, MPI_UNSIGNED,
-                  global_matrix.data(), local_r * local_s, MPI_UNSIGNED, comm);
-
-    if (rank == 0)
+    // Step 1: Untranspose - exchanging elements between processes
+    for (int i = 0; i < local_r; ++i)
     {
-        for (unsigned int i = 0; i < local_r * size; ++i)
-        {
-            for (unsigned int j = 0; j < local_s * size; ++j)
-            {
-                unsigned int new_row = i + shift_amount;
-                if (new_row < local_r * size)
-                {
-                    shifted_global_matrix[new_row * (local_s * size + 1) + j] = global_matrix[i * local_s * size + j];
-                }
-                else
-                {
-                    shifted_global_matrix[(new_row - local_r * size) * (local_s * size + 1) + j + 1] = global_matrix[i * local_s * size + j];
-                }
-            }
-        }
+        int global_index = taskid * local_r + i;
+        int dest_col = global_index % numtasks;
+        int dest_row = global_index / numtasks;
 
-        for (unsigned int i = 0; i < shift_amount; ++i)
-        {
-            shifted_global_matrix[i * (local_s * size + 1)] = 0;
-        }
+        int dest_task = dest_row % numtasks;
+        int send_offset = dest_col;
+
+        MPI_Sendrecv(&vec[i], 1, MPI_UNSIGNED, dest_task, 0,
+                     &recv_buffer[i], 1, MPI_UNSIGNED, dest_task, 0,
+                     comm, MPI_STATUS_IGNORE);
     }
 
-    MPI_Bcast(shifted_global_matrix.data(), shifted_global_matrix.size(), MPI_UNSIGNED, 0, comm);
-
-    local_s++;
-    local_matrix.resize(local_r * local_s);
-
-    for (unsigned int i = 0; i < local_r; ++i)
+    // Copy received elements into the untransposed vector
+    for (int i = 0; i < local_r; ++i)
     {
-        for (unsigned int j = 0; j < local_s; ++j)
-        {
-            local_matrix[i * local_s + j] = shifted_global_matrix[(i * size + rank) * (local_s * size) + j];
-        }
+        untransposed_vector[i] = recv_buffer[i];
     }
+
+    // Step 2: Reshaping - reassign positions locally
+    for (int i = 0; i < local_r; ++i)
+    {
+        int new_row = i / s;
+        int new_col = i % s;
+        reshaped_vector[new_row * s + new_col] = untransposed_vector[i];
+    }
+
+    // Update the original vector with the reshaped data
+    vec = reshaped_vector;
 }
 
-// Undo the shift operation
-void unshift(std::vector<unsigned int> &local_matrix, unsigned int &local_r, unsigned int &local_s, int rank, int size, MPI_Comm comm)
+void shift(std::vector<unsigned int> &main_vector, int r, int s, int taskid, int numtasks, MPI_Comm comm)
 {
-    unsigned int shift_amount = local_r * size / 2;
-    std::vector<unsigned int> global_matrix(local_r * local_s * size);
-    std::vector<unsigned int> unshifted_global_matrix(local_r * size * (local_s * size - 1));
+    int column_size = main_vector.size();
+    int local_r = r / numtasks;
+    int expanded_size = column_size + r;
+    std::vector<unsigned int> expanded_vector(column_size + r, UINT_MAX); // Using UINT_MAX as infinity
 
-    MPI_Allgather(local_matrix.data(), local_r * local_s, MPI_UNSIGNED,
-                  global_matrix.data(), local_r * local_s, MPI_UNSIGNED, comm);
-
-    if (rank == 0)
+    // Step 1: Copy original values to expanded vector with offset of local_r
+    for (int i = 0; i < local_r; i++)
     {
-        for (unsigned int i = 0; i < local_r * size; ++i)
+        expanded_vector[(column_size / numtasks) + i] = main_vector[i];
+    }
+
+    // Print expanded matrix
+    print_matrix(expanded_vector, r + column_size, numtasks, "Step 1: Expanded matrix", taskid, comm);
+
+    // Step 2: Handle processor 0's shift behavior
+    if (taskid == 0)
+    {
+        std::vector<unsigned int> temp_vector;
+        int shift_amount = local_r / 2;
+
+        // Collect elements to be shifted
+        for (int i = 0; i < shift_amount; i++)
         {
-            for (unsigned int j = 0; j < local_s * size - 1; ++j)
+            if (expanded_vector[i] != UINT_MAX)
             {
-                unsigned int old_row = (i + shift_amount) % (local_r * size);
-                unsigned int old_col = (old_row < shift_amount) ? j + 1 : j;
-                unshifted_global_matrix[i * (local_s * size - 1) + j] = global_matrix[old_row * local_s * size + old_col];
+                temp_vector.push_back(expanded_vector[(expanded_size / numtasks) - 1]);
+                std::cout << "Pushed value: " << (expanded_size / numtasks) - 1 << expanded_vector[(expanded_size / numtasks) - 1] << std::endl;
+                expanded_vector.pop_back();
+                expanded_vector.insert(expanded_vector.begin(), UINT_MAX);
             }
         }
-    }
 
-    MPI_Bcast(unshifted_global_matrix.data(), unshifted_global_matrix.size(), MPI_UNSIGNED, 0, comm);
-
-    local_s--;
-    local_matrix.resize(local_r * local_s);
-
-    for (unsigned int i = 0; i < local_r; ++i)
-    {
-        for (unsigned int j = 0; j < local_s; ++j)
+        // Send these elements to the next processor
+        if (numtasks > 1)
         {
-            local_matrix[i * local_s + j] = unshifted_global_matrix[(i * size + rank) * (local_s * size) + j];
+            MPI_Send(temp_vector.data(), temp_vector.size(), MPI_UNSIGNED, 1, 0, comm);
+        }
+
+        for (int i = 0; i < shift_amount; i++)
+        {
+            expanded_vector[i] = 0;
         }
     }
+    print_matrix(expanded_vector, r + column_size, numtasks, "Step 2: Starting processor", taskid, comm);
+
+    // Step 3 : Middle processors behavior else if (taskid < numtasks - 1)
+    {
+        // Receive shifted elements from previous processor
+        MPI_Status status;
+        MPI_Probe(taskid - 1, 0, comm, &status);
+        int recv_count;
+        MPI_Get_count(&status, MPI_UNSIGNED, &recv_count);
+
+        std::vector<unsigned int> received_vector(recv_count);
+        MPI_Recv(received_vector.data(), recv_count, MPI_UNSIGNED, taskid - 1, 0, comm, MPI_STATUS_IGNORE);
+
+        // Insert received elements at the beginning
+        for (int i = 0; i < recv_count; i++)
+        {
+            expanded_vector[i] = received_vector[i];
+        }
+
+        print_matrix(expanded_vector, r + column_size, numtasks, "After recieving from previous processor", taskid, comm);
+
+        // // Sort the expanded vector
+        // std::sort(expanded_vector.begin(), expanded_vector.end());
+
+        // // Collect elements to be shifted to next processor
+        // std::vector<unsigned int> elements_to_shift;
+        // for (int i = expanded_size - recv_count; i < expanded_size; i++)
+        // {
+        //     if (expanded_vector[i] == UINT_MAX)
+        //     {
+        //         elements_to_shift.push_back(expanded_vector[i]);
+        //     }
+        // }
+
+        // // Send elements to next processor and receive elements from next processor
+        // int send_count = elements_to_shift.size();
+        // std::vector<unsigned int> received_from_next(send_count);
+
+        // // Use MPI_Sendrecv to handle both operations atomically
+        // MPI_Sendrecv(elements_to_shift.data(), send_count, MPI_UNSIGNED, taskid + 1, 0,
+        //              received_from_next.data(), send_count, MPI_UNSIGNED, taskid + 1, 0,
+        //              comm, MPI_STATUS_IGNORE);
+
+        // // Replace the INF elements at the end with received elements
+        // int replace_start = expanded_size - send_count;
+        // for (int i = 0; i < send_count; i++)
+        // {
+        //     expanded_vector[replace_start + i] = received_from_next[i];
+        // }
+    }
+    print_matrix(expanded_vector, r + column_size, numtasks, "Step 3: middle processor", taskid, comm);
+
+    // // Step 4: Last processor behavior
+    // else
+    // {
+    //     // Receive shifted elements from previous processor
+    //     MPI_Status status;
+    //     MPI_Probe(taskid - 1, 0, comm, &status);
+    //     int recv_count;
+    //     MPI_Get_count(&status, MPI_UNSIGNED, &recv_count);
+
+    //     std::vector<unsigned int> received_vector(recv_count);
+    //     MPI_Recv(received_vector.data(), recv_count, MPI_UNSIGNED, taskid - 1, 0, comm, MPI_STATUS_IGNORE);
+
+    //     // Insert received elements at the beginning
+    //     for (int i = 0; i < recv_count; i++)
+    //     {
+    //         expanded_vector[i] = received_vector[i];
+    //     }
+
+    //     // Sort the expanded vector
+    //     std::sort(expanded_vector.begin(), expanded_vector.end());
+    // }
+    // print_matrix(expanded_vector, r + column_size, numtasks, "Step 4: final processor", taskid, comm);
+
+    // // Synchronize all processes
+    // MPI_Barrier(comm);
 }
 
 int column_sort(std::vector<unsigned int> &main_vector, unsigned int input_size, MPI_Comm worker_comm)
@@ -195,109 +265,33 @@ int column_sort(std::vector<unsigned int> &main_vector, unsigned int input_size,
     MPI_Comm_rank(worker_comm, &rank);
     MPI_Comm_size(worker_comm, &size);
 
-    unsigned int total_elements = input_size * input_size;
-    unsigned int r = input_size / size;
-    unsigned int s = input_size;
+    int r = array_size;
+    int s = numtasks;
+    int local_r = r / numtasks;
 
-    unsigned int local_r = r;
-    unsigned int local_s = s / size;
+    print_matrix(main_vector, r, numtasks, "Begin result before column sort", taskid, MPI_COMM_WORLD);
 
-    if (rank == 0)
-    {
-        // printf("r (rows per worker) = %u\n", r);
-        // printf("s (total number of columns) = %u\n", s);
-        // printf("input_size = %u\n", input_size);
-        // printf("\n\n");
-    }
+    // Step 1: Sort columns
+    std::sort(main_vector.begin(), main_vector.end());
+    print_matrix(main_vector, r, numtasks, "Step 1: Sort columns", taskid, MPI_COMM_WORLD);
 
-    std::vector<unsigned int> local_matrix(local_r * local_s);
-    MPI_Scatter(main_vector.data(), local_r * local_s, MPI_UNSIGNED,
-                local_matrix.data(), local_r * local_s, MPI_UNSIGNED, 0, worker_comm);
+    // Step 2: Transpose and Reshape
+    parallel_transpose_and_reshape(main_vector, r, s, taskid, numtasks, MPI_COMM_WORLD);
+    print_matrix(main_vector, r, numtasks, "Step 2: Transpose and Reshape", taskid, MPI_COMM_WORLD);
 
-    for (int current_rank = 0; current_rank < size; current_rank++)
-    {
-        if (rank == current_rank)
-        {
-            // printf("Rank %d Initial Matrix:\n", rank);
-            for (unsigned int i = 0; i < local_r; i++)
-            {
-                for (unsigned int j = 0; j < local_s; j++)
-                {
-                    // printf("%u ", local_matrix[i * local_s + j]);
-                }
-                // printf("\n");
-            }
-            // printf("\n");
-        }
-        MPI_Barrier(worker_comm);
-    }
+    // Step 3: Sort columns
+    std::sort(main_vector.begin(), main_vector.end());
+    print_matrix(main_vector, r, numtasks, "Step 3: Sort columns", taskid, MPI_COMM_WORLD);
 
-    // Step 1: Sort columns locally
-    CALI_CXX_MARK_LOOP_BEGIN(step1, "Step 1: Sort columns");
-    sortColumns(local_matrix, local_r, local_s);
-    CALI_CXX_MARK_LOOP_END(step1);
-    // if (rank == 0)
-    //     // printf("Step 1: Sort columns\n");
-    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
+    // Step 4: Untranspose and Reshape
+    parallel_untranspose_and_reshape(main_vector, r, s, taskid, numtasks, MPI_COMM_WORLD);
+    print_matrix(main_vector, r, numtasks, "Step 4: Untranspose and Reshape", taskid, MPI_COMM_WORLD);
 
-    // Step 2: Transpose the matrix globally
-    CALI_CXX_MARK_LOOP_BEGIN(step2, "Step 2: Transpose");
-    transpose(local_matrix, local_r, local_s, rank, size, worker_comm);
-    CALI_CXX_MARK_LOOP_END(step2);
-    // if (rank == 0)
-    //     // printf("Step 2: Transpose\n");
-    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
+    // Step 5: Sort columns
+    std::sort(main_vector.begin(), main_vector.end());
+    print_matrix(main_vector, r, numtasks, "Step 5: Sort columns", taskid, MPI_COMM_WORLD);
 
-    // Step 3: Sort columns again
-    CALI_CXX_MARK_LOOP_BEGIN(step3, "Step 3: Sort columns");
-    sortColumns(local_matrix, local_r, local_s);
-    CALI_CXX_MARK_LOOP_END(step3);
-    // if (rank == 0)
-    //     // printf("Step 3: Sort columns\n");
-    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
-
-    // Step 4: Untranspose the matrix
-    CALI_CXX_MARK_LOOP_BEGIN(step4, "Step 4: Untranspose");
-    untranspose(local_matrix, local_r, local_s, rank, size, worker_comm);
-    CALI_CXX_MARK_LOOP_END(step4);
-    // if (rank == 0)
-    //     // printf("Step 4: Untranspose\n");
-    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
-
-    // Step 5: Sort columns again
-    CALI_CXX_MARK_LOOP_BEGIN(step5, "Step 5: Sort columns");
-    sortColumns(local_matrix, local_r, local_s);
-    CALI_CXX_MARK_LOOP_END(step5);
-    // if (rank == 0)
-    //     // printf("Step 5: Sort columns\n");
-    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
-
-    // Step 6: Shift the matrix
-    CALI_CXX_MARK_LOOP_BEGIN(step6, "Step 6: Shift");
-    shift(local_matrix, local_r, local_s, rank, size, worker_comm);
-    CALI_CXX_MARK_LOOP_END(step6);
-    // if (rank == 0)
-    //     // printf("Step 6: Shift\n");
-    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
-
-    // Step 7: Sort columns again
-    CALI_CXX_MARK_LOOP_BEGIN(step7, "Step 7: Sort columns");
-    sortColumns(local_matrix, local_r, local_s);
-    CALI_CXX_MARK_LOOP_END(step7);
-    // if (rank == 0)
-    //     // printf("Step 7: Sort columns\n");
-    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
-
-    // Step 8: Unshift the matrix
-    CALI_CXX_MARK_LOOP_BEGIN(step8, "Step 8: Unshift");
-    unshift(local_matrix, local_r, local_s, rank, size, worker_comm);
-    CALI_CXX_MARK_LOOP_END(step8);
-    // if (rank == 0)
-    //     // printf("Step 8: Unshift (Final result)\n");
-    //     printMatrix(local_matrix, local_r, local_s, rank, size, worker_comm);
-
-    MPI_Gather(local_matrix.data(), local_r * local_s, MPI_UNSIGNED,
-               main_vector.data(), local_r * local_s, MPI_UNSIGNED, 0, worker_comm);
-
-    return 0;
+    // Step 6: expand the columns
+    shift(main_vector, r, s, taskid, numtasks, MPI_COMM_WORLD);
+    // print_matrix(main_vector, r, numtasks, "Step 6: Expand", taskid, MPI_COMM_WORLD);
 }
