@@ -600,7 +600,7 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_18.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_18.png)
       - Input size of 2<sup>16</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_16.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_16.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_16.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_16.png)
 
