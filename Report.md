@@ -572,19 +572,19 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
   - ### Strong Scaling:
     - Avg time/rank:
       - Input size of 2<sup>28</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort-strong-28.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort-runtime-strong-28.png)
       - Input size of 2<sup>26</sup>:
-        ![Strong Scaling Input 2^26](Plots/Samplesort_Plots/samplesort-strong-26.png)
+        ![Strong Scaling Input 2^26](Plots/Samplesort_Plots/samplesort-runtime-strong-26.png)
       - Input size of 2<sup>24</sup>:
-        ![Strong Scaling Input 2^24](Plots/Samplesort_Plots/samplesort-strong-24.png)
+        ![Strong Scaling Input 2^24](Plots/Samplesort_Plots/samplesort-runtime-strong-24.png)
       - Input size of 2<sup>22</sup>:
-        ![Strong Scaling Input 2^22](Plots/Samplesort_Plots/samplesort-strong-22.png)
+        ![Strong Scaling Input 2^22](Plots/Samplesort_Plots/samplesort-runtime-strong-22.png)
       - Input size of 2<sup>20</sup>:
-        ![Strong Scaling Input 2^20](Plots/Samplesort_Plots/samplesort-strong-20.png)
+        ![Strong Scaling Input 2^20](Plots/Samplesort_Plots/samplesort-runtime-strong-20.png)
       - Input size of 2<sup>18</sup>:
-        ![Strong Scaling Input 2^18](Plots/Samplesort_Plots/samplesort-strong-18.png)
+        ![Strong Scaling Input 2^18](Plots/Samplesort_Plots/samplesort-runtime-strong-18.png)
       - Input size of 2<sup>16</sup>:
-        ![Strong Scaling Input 2^16](Plots/Samplesort_Plots/samplesort-strong-16.png)
+        ![Strong Scaling Input 2^16](Plots/Samplesort_Plots/samplesort-runtime-strong-16.png)
 
 ## 5. Presentation
 
