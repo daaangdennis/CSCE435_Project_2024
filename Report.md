@@ -548,6 +548,26 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
   - Total time
   - Variance time/rank
 
+  ### _Note: Due to issues with Grace, plot points for 1024 processors will not be shown._
+
+- ### Bitonic Sort
+  - ### Strong Scaling:
+    - Avg time/rank:
+      - Input size of 2<sup>28</sup>:
+        ![Strong Scaling Input 2^28](https://cdn.discordapp.com/attachments/671755660186222624/1298437762701332541/strong_scaling_28.jpg?ex=67198fe6&is=67183e66&hm=a5174a9d3d8236b22f7654a743a12c31fc8fb2ecc2b715f4e72eacfb1a759544&)
+      - Input size of 2<sup>26</sup>:
+        ![Strong Scaling Input 2^26](https://cdn.discordapp.com/attachments/671755660186222624/1298437762428440628/strong_scaling_26.jpg?ex=67198fe6&is=67183e66&hm=ab4fdf852531c44e5d1deb04feddf905f31424cadc4546ea24bab2cb608315c7&)
+      - Input size of 2<sup>24</sup>:
+        ![Strong Scaling Input 2^24](https://cdn.discordapp.com/attachments/671755660186222624/1298437762021855272/strong_scaling_24.jpg?ex=67198fe6&is=67183e66&hm=a5f260ca0e0e14d36258e382fc8c17dec29c2559ac4528dd15e2db4b686ca476&)
+      - Input size of 2<sup>22</sup>:
+        ![Strong Scaling Input 2^22](https://cdn.discordapp.com/attachments/671755660186222624/1298437761660878900/strong_scaling_22.jpg?ex=67198fe6&is=67183e66&hm=a27e9661c0e007d3818efb49b57f189758bb32300a3e796850b9d19dab0f7554&)
+      - Input size of 2<sup>20</sup>:
+        ![Strong Scaling Input 2^20](https://cdn.discordapp.com/attachments/671755660186222624/1298437761233326120/strong_scaling_20.jpg?ex=67198fe6&is=67183e66&hm=bde34e8ba49402f576e4a48a0f8489b9c236be9f3beac7a5a79e751cd8bc050a&)
+      - Input size of 2<sup>18</sup>:
+        ![Strong Scaling Input 2^18](https://cdn.discordapp.com/attachments/671755660186222624/1298437760709033994/strong_scaling_18.jpg?ex=67198fe5&is=67183e65&hm=d93d2d3aee7fe36b06c2cc512264e31b02050c5b5b00980c0aebeb70f31e6678&)
+      - Input size of 2<sup>16</sup>:
+        ![Strong Scaling Input 2^16](https://cdn.discordapp.com/attachments/671755660186222624/1298437760121573386/strong_scaling_16.jpg?ex=67198fe5&is=67183e65&hm=cbf55913a6dde51f27dae180ca208bd83f738d289db89176cb566de2b4d70ce9&)
+
 ## 5. Presentation
 
 Plots for the presentation should be as follows:
