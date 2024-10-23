@@ -18,9 +18,9 @@ void bitonic_sort(std::vector<unsigned int>& local_seq, const int& taskid, const
 
     // Perform individual sorts to prepare for merge
     CALI_MARK_BEGIN("comp");
-    CALI_MARK_BEGIN("comp_sort_local");
+    CALI_MARK_BEGIN("comp_small");
     std::sort(local_seq.begin(), local_seq.end());
-    CALI_MARK_END("comp_sort_local");
+    CALI_MARK_END("comp_small");
     CALI_MARK_END("comp");
 
     // Debug loop to check sequence after sorts
@@ -60,9 +60,9 @@ void bitonic_sort(std::vector<unsigned int>& local_seq, const int& taskid, const
 
                 auto merged_seq = std::vector<unsigned int>(local_n * 2);
                 CALI_MARK_BEGIN("comp");
-                CALI_MARK_BEGIN("comp_sort_combined");
+                CALI_MARK_BEGIN("comp_large");
                 std::merge(local_seq.begin(), local_seq.end(), partner_seq.begin(), partner_seq.end(), merged_seq.begin());
-                CALI_MARK_END("comp_sort_combined");
+                CALI_MARK_END("comp_large");
                 CALI_MARK_END("comp");
 
                 if ((!direction && taskid < partnerid) || (direction && taskid > partnerid)) {

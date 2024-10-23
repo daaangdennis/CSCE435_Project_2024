@@ -362,8 +362,8 @@ CALI_MARK_END("comp");
 ├─ 0.088 main
 │  ├─ 0.003 data_init_runtime
 │  ├─ 0.012 comp
-│  │  ├─ 0.010 comp_sort_local
-│  │  └─ 0.003 comp_sort_combined
+│  │  ├─ 0.010 comp_small
+│  │  └─ 0.003 comp_large
 │  ├─ 0.057 comm
 │  │  ├─ 0.023 comm_small
 │  │  │  └─ 0.023 MPI_Sendrecv
