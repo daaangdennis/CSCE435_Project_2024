@@ -527,6 +527,8 @@ MPI: num_procs:
 
 This should result in 4x7x10=280 Caliper files for your MPI experiments.
 
+<ins>Note:</ins> Due to issues with Grace, we did not do runs for 1024 processes, resulting in 4x7x9=252 Caliper files for our MPI experiments.
+
 ### 4b. Hints for performance analysis
 
 To automate running a set of experiments, parameterize your program.
@@ -547,6 +549,60 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
   - Avg time/rank
   - Total time
   - Variance time/rank
+
+  ### <ins>Note:</ins> Due to issues with Grace, plot points for 1024 processors will not be shown.
+
+- ### Bitonic Sort
+  - ### Strong Scaling:
+    - Avg time/rank:
+      - Input size of 2<sup>28</sup>:
+        ![Strong Scaling Input 2^28](Plots/Bitonicsort_Plots/strong_scaling_28.jpg)
+      - Input size of 2<sup>26</sup>:
+        ![Strong Scaling Input 2^26](Plots/Bitonicsort_Plots/strong_scaling_26.jpg)
+      - Input size of 2<sup>24</sup>:
+        ![Strong Scaling Input 2^24](Plots/Bitonicsort_Plots/strong_scaling_24.jpg)
+      - Input size of 2<sup>22</sup>:
+        ![Strong Scaling Input 2^22](Plots/Bitonicsort_Plots/strong_scaling_22.jpg)
+      - Input size of 2<sup>20</sup>:
+        ![Strong Scaling Input 2^20](Plots/Bitonicsort_Plots/strong_scaling_20.jpg)
+      - Input size of 2<sup>18</sup>:
+        ![Strong Scaling Input 2^18](Plots/Bitonicsort_Plots/strong_scaling_18.jpg)
+      - Input size of 2<sup>16</sup>:
+        ![Strong Scaling Input 2^16](Plots/Bitonicsort_Plots/strong_scaling_16.jpg)
+
+      For all input types, the average time for the comp region decreased as more processors were used. This is expected as using more processors means that the data will be split into smaller chunks between processors, making the overall local sorting much quicker. Furthermore, this decrease was more prevalent in larger input sizes due to the fact that sorting smaller input sizes is already a fast computation. As for the main region, for every input type, the average time actually increased as more processors were used for input sizes 2<sup>16</sup>, 2<sup>18</sup>, and 2<sup>20</sup>. We suspect that this is because adding more processors for smaller input sizes just increases the overhead for communicating between processors with little benefit towards the actual computation time. This interaction can also kind of be seen with input sizes 2<sup>22</sup> and 2<sup>24</sup>, where the average time decreased as the number of processors increased, up to 16 processors, at which point, the time started to increase. With the larger input sizes of 2<sup>26</sup> and 2<sup>28</sup>, the average time constantly decreased with no increase at any point, most likely because the benefit from having more processors outweighed the increased overhead.
+
+- ### Sample Sort
+  - ### Strong Scaling:
+    - Avg time/rank:
+      - Input size of 2<sup>28</sup>:
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_28.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_28.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_28.png)
+      - Input size of 2<sup>26</sup>:
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_26.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_26.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_26.png)
+      - Input size of 2<sup>24</sup>:
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_24.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_24.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_24.png)
+      - Input size of 2<sup>22</sup>:
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_22.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_22.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_22.png)
+      - Input size of 2<sup>20</sup>:
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_20.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_20.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_20.png)
+      - Input size of 2<sup>18</sup>:
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_18.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_18.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_18.png)
+      - Input size of 2<sup>16</sup>:
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_16.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_16.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_16.png)
 
 ## 5. Presentation
 
