@@ -26,7 +26,7 @@ void samplesort(
     }
     /* take K samples from local sequence */
     CALI_MARK_BEGIN("comp");
-    CALI_MARK_BEGIN("comp_sampling_local");
+    CALI_MARK_BEGIN("comp_small");
     std::vector<unsigned int> local_sample(K, 0);
     if (K == 1) {
         local_sample.at(0) = local_seq.at(local_seq.size() / 2);
@@ -39,7 +39,7 @@ void samplesort(
             }
         }  
     }
-    CALI_MARK_END("comp_sampling_local");
+    CALI_MARK_END("comp_small");
     CALI_MARK_END("comp");
     // for (unsigned int i = 0; i < num_processors; ++i) {
     //     MPI_Barrier(comm);
@@ -55,14 +55,14 @@ void samplesort(
     /* gather samples to processor 0 */
     std::vector<unsigned int> gathered_samples(K * num_processors, 0);
     CALI_MARK_BEGIN("comm");
-    CALI_MARK_BEGIN("comm_gather_sample");
+    CALI_MARK_BEGIN("comm_small");
     MPI_Gather(&local_sample[0], K, MPI_UNSIGNED, &gathered_samples[0], K, MPI_UNSIGNED, 0, comm);
-    CALI_MARK_END("comm_gather_sample");
+    CALI_MARK_END("comm_small");
     CALI_MARK_END("comm");
     /* processor 0 determine pivots*/
     std::vector<unsigned int> pivots(num_processors - 1, 0);
     CALI_MARK_BEGIN("comp");
-    CALI_MARK_BEGIN("comp_determine_pivots");
+    CALI_MARK_BEGIN("comp_small");
     if (pid == 0) {
         /* sort */
         std::sort(gathered_samples.begin(), gathered_samples.end());
@@ -81,20 +81,20 @@ void samplesort(
         // }
         // printf("}.\n");
     }
-    CALI_MARK_END("comp_determine_pivots");
+    CALI_MARK_END("comp_small");
     CALI_MARK_END("comp");
     /* bcast pivots */
     CALI_MARK_BEGIN("comm");
-    CALI_MARK_BEGIN("comm_bcast_pivots");
+    CALI_MARK_BEGIN("comm_small");
     MPI_Bcast(&pivots[0], pivots.size(), MPI_UNSIGNED, 0, comm);
-    CALI_MARK_END("comm_bcast_pivots");
+    CALI_MARK_END("comm_small");
     CALI_MARK_END("comm");
     /* 
         split local sequence into buckets
         - idea: use sorted local sequence and pointers to ensure memory efficiency
     */
     CALI_MARK_BEGIN("comp");
-    CALI_MARK_BEGIN("comp_local_to_buckets");
+    CALI_MARK_BEGIN("comp_large");
     std::sort(local_seq.begin(), local_seq.end());
     std::vector<std::pair<unsigned int *, unsigned long long>> buckets(
         num_processors, std::pair<unsigned int *, unsigned long long>(nullptr, 0)
@@ -115,7 +115,7 @@ void samplesort(
         buckets.at(i).second = bucket_end - bucket_start;
         buckets.at(i).first = (buckets.at(i).second > 0) ? &(*bucket_start) : nullptr;
     }
-    CALI_MARK_END("comp_local_to_buckets");
+    CALI_MARK_END("comp_large");
     CALI_MARK_END("comp");
     // for (unsigned int i = 0; i < num_processors; ++i) {
     //     MPI_Barrier(comm);
@@ -132,7 +132,7 @@ void samplesort(
     // }
     /* exchange buckets */
     CALI_MARK_BEGIN("comm");
-    CALI_MARK_BEGIN("comm_exchange_buckets");
+    CALI_MARK_BEGIN("comm_large");
     std::vector<int> recv_counts(num_processors, 0), recv_displacements(num_processors, 0);
     std::vector<unsigned int> recv_buf;
     for (unsigned int i = 0; i < num_processors; ++i){
@@ -167,13 +167,13 @@ void samplesort(
         //     printf("}.\n");
         // }
     }
-    CALI_MARK_END("comm_exchange_buckets");
+    CALI_MARK_END("comm_large");
     CALI_MARK_END("comm");
     /* sort recv_buf */
     CALI_MARK_BEGIN("comp");
-    CALI_MARK_BEGIN("comp_sort_recv_buf");
+    CALI_MARK_BEGIN("comp_large");
     std::sort(recv_buf.begin(), recv_buf.end());
-    CALI_MARK_END("comp_sort_recv_buf");
+    CALI_MARK_END("comp_large");
     CALI_MARK_END("comp");
     /* modify local sequence */
     local_seq.clear();
