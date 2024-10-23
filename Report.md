@@ -576,31 +576,31 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
   - ### Strong Scaling:
     - Avg time/rank:
       - Input size of 2<sup>28</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_sort_runtime_strong_28.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_28.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_28.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_28.png)
       - Input size of 2<sup>26</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_sort_runtime_strong_26.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_26.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_26.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_26.png)
       - Input size of 2<sup>24</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_sort_runtime_strong_24.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_24.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_24.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_24.png)
       - Input size of 2<sup>22</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_sort_runtime_strong_22.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_22.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_22.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_22.png)
       - Input size of 2<sup>20</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_sort_runtime_strong_20.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_20.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_20.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_20.png)
       - Input size of 2<sup>18</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_sort_runtime_strong_18.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_18.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_18.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_18.png)
       - Input size of 2<sup>16</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_sort_runtime_strong_16.png)
+        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_16.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_16.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_16.png)
 
