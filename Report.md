@@ -552,25 +552,26 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
 
   ### <ins>Note:</ins> Due to issues with Grace, plot points for 1024 processors will not be shown.
 
-- ### Bitonic Sort
+- ### Bitonic Sort (Dennis Dang)
   - ### Strong Scaling:
-    - Avg time/rank:
-      - Input size of 2<sup>28</sup>:
+    - ### Avg time/rank:
         ![Strong Scaling Input 2^28](Plots/Bitonicsort_Plots/strong_scaling_28.jpg)
-      - Input size of 2<sup>26</sup>:
         ![Strong Scaling Input 2^26](Plots/Bitonicsort_Plots/strong_scaling_26.jpg)
-      - Input size of 2<sup>24</sup>:
         ![Strong Scaling Input 2^24](Plots/Bitonicsort_Plots/strong_scaling_24.jpg)
-      - Input size of 2<sup>22</sup>:
         ![Strong Scaling Input 2^22](Plots/Bitonicsort_Plots/strong_scaling_22.jpg)
-      - Input size of 2<sup>20</sup>:
         ![Strong Scaling Input 2^20](Plots/Bitonicsort_Plots/strong_scaling_20.jpg)
-      - Input size of 2<sup>18</sup>:
         ![Strong Scaling Input 2^18](Plots/Bitonicsort_Plots/strong_scaling_18.jpg)
-      - Input size of 2<sup>16</sup>:
         ![Strong Scaling Input 2^16](Plots/Bitonicsort_Plots/strong_scaling_16.jpg)
 
       For all input types, the average time for the comp region decreased as more processors were used. This is expected as using more processors means that the data will be split into smaller chunks between processors, making the overall local sorting much quicker. Furthermore, this decrease was more prevalent in larger input sizes due to the fact that sorting smaller input sizes is already a fast computation. As for the main region, for every input type, the average time actually increased as more processors were used for input sizes 2<sup>16</sup>, 2<sup>18</sup>, and 2<sup>20</sup>. We suspect that this is because adding more processors for smaller input sizes just increases the overhead for communicating between processors with little benefit towards the actual computation time. This interaction can also kind of be seen with input sizes 2<sup>22</sup> and 2<sup>24</sup>, where the average time decreased as the number of processors increased, up to 16 processors, at which point, the time started to increase. With the larger input sizes of 2<sup>26</sup> and 2<sup>28</sup>, the average time constantly decreased with no increase at any point, most likely because the benefit from having more processors outweighed the increased overhead.
+
+  - ### Strong Scaling Speedup
+    - ### Main Region:
+      ![Strong Scaling Speedup Main Region](Plots/Bitonicsort_Plots/strong_scaling_speedup_main.jpg)
+    - ### Comp Region:
+      ![Strong Scaling Speedup Comp Region](Plots/Bitonicsort_Plots/strong_scaling_speedup_comp.jpg)
+    - ### Comm Region:
+      ![Strong Scaling Speedup Comm Region](Plots/Bitonicsort_Plots/strong_scaling_speedup_comm.jpg)
 
 - ### Sample Sort
   - ### Strong Scaling:
