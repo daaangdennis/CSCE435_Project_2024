@@ -604,6 +604,9 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_16.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_16.png)
         ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_16.png)
+        
+- ### Merge Sort
+With the caliper files there were a multitude of issues regading the connection with Grace. However, a connection was established long enough to produce caliper files and ensuer that the local results were able to be scaled. Future scripts will be an to fulfill the needs of the report and presentation and graphed using Jupyter.
 
 ## 5. Presentation
 
