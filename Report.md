@@ -571,6 +571,14 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
     - ### Comm Region:
       ![Strong Scaling Speedup Comm Region](Plots/Bitonicsort_Plots/strong_scaling_speedup_comm.jpg)
 
+  - ### Weak Scaling
+    - ### Main Region:
+      ![Strong Scaling Speedup Main Region](Plots/Bitonicsort_Plots/weak_scaling_main.jpg)
+    - ### Comp Region:
+      ![Strong Scaling Speedup Comp Region](Plots/Bitonicsort_Plots/weak_scaling_comp.jpg)
+    - ### Comm Region:
+      ![Strong Scaling Speedup Comm Region](Plots/Bitonicsort_Plots/weak_scaling_comm.jpg)
+
 - ### Sample Sort
   - ### Strong Scaling:
     - Avg time/rank:
