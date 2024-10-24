@@ -381,32 +381,30 @@ CALI_MARK_END("comp");
 
 ```
 # Sample Sort
-0.027 main
-├─ 0.000 MPI_Comm_dup
+1.614 main
+├─ 0.003 MPI_Comm_dup
 ├─ 0.000 MPI_Finalize
 ├─ 0.000 MPI_Finalized
+├─ 0.000 MPI_Init
 ├─ 0.000 MPI_Initialized
-├─ 0.001 correctness_check
+├─ 0.002 correctness_check
 │  ├─ 0.000 MPI_Bcast
 │  ├─ 0.000 MPI_Recv
 │  ├─ 0.000 MPI_Reduce
 │  └─ 0.000 MPI_Send
-├─ 0.001 data_init_runtime
-└─ 0.020 sort_runtime
+├─ 0.002 data_init_runtime
+└─ 0.087 sort_runtime
    ├─ 0.000 MPI_Barrier
-   ├─ 0.011 comm
-   │  ├─ 0.004 comm_bcast_pivots
-   │  │  └─ 0.004 MPI_Bcast
-   │  ├─ 0.006 comm_exchange_buckets
-   │  │  ├─ 0.003 MPI_Gather
-   │  │  └─ 0.003 MPI_Gatherv
-   │  └─ 0.001 comm_gather_sample
-   │     └─ 0.001 MPI_Gather
-   └─ 0.009 comp
-      ├─ 0.000 comp_determine_pivots
-      ├─ 0.005 comp_local_to_buckets
-      ├─ 0.000 comp_sampling_local
-      └─ 0.005 comp_sort_recv_buf
+   ├─ 0.061 comm
+   │  ├─ 0.043 comm_large
+   │  │  ├─ 0.002 MPI_Gather
+   │  │  └─ 0.040 MPI_Gatherv
+   │  └─ 0.019 comm_small
+   │     ├─ 0.017 MPI_Bcast
+   │     └─ 0.002 MPI_Gather
+   └─ 0.026 comp
+      ├─ 0.025 comp_large
+      └─ 0.000 comp_small
 ```
 
 ```
