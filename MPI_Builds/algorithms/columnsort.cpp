@@ -1,39 +1,39 @@
 #include "columnsort.h"
 
-void print_matrix(const std::vector<unsigned int> &local_vector, unsigned int n, unsigned int r, unsigned int s, const std::string &step, int taskid, MPI_Comm comm)
-{
-    std::vector<unsigned int> full_vector;
-    if (taskid == 0)
-    {
-        full_vector.resize(n); // Resize to hold all elements
-    }
+// void print_matrix(const std::vector<unsigned int> &local_vector, unsigned int n, unsigned int r, unsigned int s, const std::string &step, int taskid, MPI_Comm comm)
+// {
+//     std::vector<unsigned int> full_vector;
+//     if (taskid == 0)
+//     {
+//         full_vector.resize(n); // Resize to hold all elements
+//     }
 
-    // Gather data from all tasks
-    MPI_Gather(local_vector.data(), r, MPI_UNSIGNED, full_vector.data(), r, MPI_UNSIGNED, 0, comm);
+//     // Gather data from all tasks
+//     MPI_Gather(local_vector.data(), r, MPI_UNSIGNED, full_vector.data(), r, MPI_UNSIGNED, 0, comm);
 
-    if (taskid == 0)
-    {
-        std::cout << step << ":\n\n";
+//     if (taskid == 0)
+//     {
+//         std::cout << step << ":\n\n";
 
-        // Print task IDs as column headers
-        for (unsigned int i = 0; i < s; ++i)
-        {
-            std::cout << "Task " << i << "\t";
-        }
-        std::cout << std::endl;
+//         // Print task IDs as column headers
+//         for (unsigned int i = 0; i < s; ++i)
+//         {
+//             std::cout << "Task " << i << "\t";
+//         }
+//         std::cout << std::endl;
 
-        // Print each task's results in a matrix format
-        for (unsigned int i = 0; i < r; ++i)
-        {
-            for (unsigned int j = 0; j < s; ++j)
-            {
-                std::cout << full_vector[j * (r) + i] << '\t';
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-    }
-}
+//         // Print each task's results in a matrix format
+//         for (unsigned int i = 0; i < r; ++i)
+//         {
+//             for (unsigned int j = 0; j < s; ++j)
+//             {
+//                 std::cout << full_vector[j * (r) + i] << '\t';
+//             }
+//             std::cout << std::endl;
+//         }
+//         std::cout << std::endl;
+//     }
+// }
 
 void parallel_transpose_and_reshape(std::vector<unsigned int> &local_vector, unsigned int r, unsigned int s, int taskid, MPI_Comm comm)
 {
@@ -169,7 +169,7 @@ void parallel_shift_and_unshift(std::vector<unsigned int> &local_vector, unsigne
     CALI_MARK_END("comp");
 
     // Step 6
-    print_matrix(local_vector, n, r, s, "Step 6: Shift", taskid, MPI_COMM_WORLD);
+    // print_matrix(local_vector, n, r, s, "Step 6: Shift", taskid, MPI_COMM_WORLD);
 
     /*----------------- Part 2 SORT*/
 
@@ -179,7 +179,7 @@ void parallel_shift_and_unshift(std::vector<unsigned int> &local_vector, unsigne
     std::sort(local_vector.begin(), local_vector.end());
     CALI_MARK_END("comp_small");
     CALI_MARK_END("comp");
-    print_matrix(local_vector, n, r, s, "Step 7: Sort Columns", taskid, MPI_COMM_WORLD);
+    // print_matrix(local_vector, n, r, s, "Step 7: Sort Columns", taskid, MPI_COMM_WORLD);
 
     /*----------------- Part 3 UNSHIFT*/
 
@@ -229,7 +229,7 @@ void parallel_shift_and_unshift(std::vector<unsigned int> &local_vector, unsigne
     CALI_MARK_END("comp_large");
     CALI_MARK_END("comp");
     // Step 8
-    print_matrix(local_vector, n, r, s, "Step 8: Unshift", taskid, MPI_COMM_WORLD);
+    // print_matrix(local_vector, n, r, s, "Step 8: Unshift", taskid, MPI_COMM_WORLD);
 
     // Synchronize all processors
     CALI_MARK_BEGIN("comm");
@@ -239,7 +239,7 @@ void parallel_shift_and_unshift(std::vector<unsigned int> &local_vector, unsigne
 
 void column_sort(std::vector<unsigned int> &local_vector, unsigned int n, unsigned int r, unsigned int s, int taskid, MPI_Comm comm)
 {
-    print_matrix(local_vector, n, r, s, "Beginning matrix:", taskid, comm);
+    // print_matrix(local_vector, n, r, s, "Beginning matrix:", taskid, comm);
 
     // Step 1: Sort columns
     CALI_MARK_BEGIN("comp");
@@ -247,11 +247,11 @@ void column_sort(std::vector<unsigned int> &local_vector, unsigned int n, unsign
     std::sort(local_vector.begin(), local_vector.end());
     CALI_MARK_END("comp_small");
     CALI_MARK_END("comp");
-    print_matrix(local_vector, n, r, s, "Step 1: Sort columns", taskid, comm);
+    // print_matrix(local_vector, n, r, s, "Step 1: Sort columns", taskid, comm);
 
     // Step 2: Transpose and Reshape
     parallel_transpose_and_reshape(local_vector, r, s, taskid, comm);
-    print_matrix(local_vector, n, r, s, "Step 2: Transpose and Reshape", taskid, comm);
+    // print_matrix(local_vector, n, r, s, "Step 2: Transpose and Reshape", taskid, comm);
 
     // Step 3: Sort columns
     CALI_MARK_BEGIN("comp");
@@ -259,11 +259,11 @@ void column_sort(std::vector<unsigned int> &local_vector, unsigned int n, unsign
     std::sort(local_vector.begin(), local_vector.end());
     CALI_MARK_END("comp_small");
     CALI_MARK_END("comp");
-    print_matrix(local_vector, n, r, s, "Step 3: Sort columns", taskid, comm);
+    // print_matrix(local_vector, n, r, s, "Step 3: Sort columns", taskid, comm);
 
     // Step 4: Untranspose and Reshape
     parallel_untranspose_and_reshape(local_vector, r, s, taskid, comm);
-    print_matrix(local_vector, n, r, s, "Step 4: Untranspose and Reshape", taskid, comm);
+    // print_matrix(local_vector, n, r, s, "Step 4: Untranspose and Reshape", taskid, comm);
 
     // Step 5: Sort columns
     CALI_MARK_BEGIN("comp");
@@ -274,5 +274,5 @@ void column_sort(std::vector<unsigned int> &local_vector, unsigned int n, unsign
     print_matrix(local_vector, n, r, s, "Step 5: Sort columns", taskid, comm);
 
     // Step 6-8: expand the columns
-    parallel_shift_and_unshift(local_vector, n, r, s, taskid, comm);
+    // parallel_shift_and_unshift(local_vector, n, r, s, taskid, comm);
 }
