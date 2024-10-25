@@ -83,13 +83,12 @@ int main(int argc, char *argv[])
     adiak::value("group_num", 25);                           // The number of your group (integer, e.g., 1, 10)
     adiak::value("implementation_source", "handwritten");    // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
 
-    if (taskid == 0) 
+    if (taskid == 0)
     {
         printf("arraysize: %u\n arraytype: %s\n algo: %s\n",
-           array_size,
-           array_type.c_str(),
-           algorithm.c_str()
-        );
+               array_size,
+               array_type.c_str(),
+               algorithm.c_str());
     }
     CALI_MARK_BEGIN(data_init_runtime);
     std::vector<unsigned int> main_vector;
@@ -126,7 +125,34 @@ int main(int argc, char *argv[])
     }
     else if (algorithm == "column")
     {
-        // column_sort(main_vector, array_size, worker_comm);
+        unsigned int n = array_size; // matrix
+        unsigned int s = numtasks;   // columns
+        unsigned int r = n / s;      // rows
+
+        // Check if r is divisible by s (r % s = 0)
+        if (r % s != 0)
+        {
+            if (taskid == 0)
+            {
+                printf("Error: Number of rows (r=%d) must be divisible by number of processes (s=%d)\n", r, s);
+            }
+            MPI_Abort(MPI_COMM_WORLD, 1);
+            return 1;
+        }
+
+        // Check if r > 2(s-1)^2
+        if (r <= 2 * (s - 1) * (s - 1))
+        {
+            if (taskid == 0)
+            {
+                printf("Error: Number of rows (r=%d) must be greater than 2(s-1)^2 where s=%d\n", r, s);
+                printf("Minimum required array size for %d processes: %d\n", s, s * (2 * (s - 1) * (s - 1) + 1));
+            }
+            MPI_Abort(MPI_COMM_WORLD, 1);
+            return 1;
+        }
+
+        column_sort(main_vector, n, r, s, taskid, MPI_COMM_WORLD);
     }
     else if (algorithm == "merge")
     {
@@ -138,8 +164,8 @@ int main(int argc, char *argv[])
     }
     else if (algorithm == "sample")
     {
-        /* 
-            ideally we want to sample 0.1% of the global sequence, however, 
+        /*
+            ideally we want to sample 0.1% of the global sequence, however,
             this might not be possible if the global sequence is short
         */
         unsigned long long ideal_K = 0.001 * array_size / numtasks;
