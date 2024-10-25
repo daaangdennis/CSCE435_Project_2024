@@ -271,8 +271,8 @@ void column_sort(std::vector<unsigned int> &local_vector, unsigned int n, unsign
     std::sort(local_vector.begin(), local_vector.end());
     CALI_MARK_END("comp_small");
     CALI_MARK_END("comp");
-    print_matrix(local_vector, n, r, s, "Step 5: Sort columns", taskid, comm);
+    // print_matrix(local_vector, n, r, s, "Step 5: Sort columns", taskid, comm);
 
     // Step 6-8: expand the columns
-    // parallel_shift_and_unshift(local_vector, n, r, s, taskid, comm);
+    parallel_shift_and_unshift(local_vector, n, r, s, taskid, comm);
 }

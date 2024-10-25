@@ -10,8 +10,8 @@
 #include <iomanip>
 #include <caliper/cali.h>
 
-void print_matrix(const std::vector<unsigned int> &local_vector, unsigned int n, unsigned int r, unsigned int s,
-                  const std::string &step, int taskid, MPI_Comm comm);
+// void print_matrix(const std::vector<unsigned int> &local_vector, unsigned int n, unsigned int r, unsigned int s,
+//                   const std::string &step, int taskid, MPI_Comm comm);
 
 void parallel_transpose_and_reshape(std::vector<unsigned int> &local_vector, unsigned int r, unsigned int s,
                                     int taskid, MPI_Comm comm);
