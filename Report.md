@@ -24,7 +24,7 @@ For this project, we will be comparing the sorting algorithms listed below:
 
 - Bitonic Sort (Dennis Dang): Bitonic sort is a sorting algorithm that first creates a bitonic sequence and then performs a bitonic merge to create a sorted sequence. In order to make a parallel program for bitonic sort, the array data will be split among $p$ processors. Each processor will then sort their data either ascending or descending based on rank number and then use MPI to create the bitonic sequence. Then, MPI will be used again to allow the processors to communicate and exchange data between one another to perform the bitonic merge.
 
-- Sample Sort (Sam Zhang): sample sort is a generalization of quick sort used in parallel processing systems. Sample sort partitions an unsorted list into $k$ buckets, and sorts each bucket. In parallel computing, $p$ buckets are assigned to $p$ processors, allowing efficient sorting of buckets.
+- Samplesort (Sam Zhang): samplesort is a generalization of quick sort used in parallel processing systems. Samplesort partitions an unsorted list into $k$ buckets, and sorts each bucket. In parallel computing, $p$ buckets are assigned to $p$ processors, allowing efficient sorting of buckets.
 
 - Merge Sort (Jack Couture): Merge sort is a sorting algorithm that divides up the data to work more efficiently and can be used to rapidly sort with parallel computing much larger sets of data. It will take the data and divide them among $p$ processors which will run in parallel to sort the divided segments. This allows the large number of buckets and data to be much more rapidly sorted.
 
@@ -58,7 +58,7 @@ We will use MPI for message passing and code in C++.
     Finalize MPI
     ```
 
-  - Sample Sort (Sam Zhang):
+  - Samplesort (Sam Zhang):
 
     ```
     # Assumptions:
@@ -380,7 +380,7 @@ CALI_MARK_END("comp");
 ```
 
 ```
-# Sample Sort
+# Samplesort
 1.614 main
 ├─ 0.003 MPI_Comm_dup
 ├─ 0.000 MPI_Finalize
@@ -548,11 +548,12 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
   - Total time
   - Variance time/rank
 
-  ### <ins>Note:</ins> Due to issues with Grace, plot points for 1024 processors will not be shown.
+- ### <ins>Note:</ins> Due to issues with Grace, plot points for 1024 processors will not be shown.
 
 - ### Bitonic Sort (Dennis Dang)
-  - ### Strong Scaling:
-    - ### Avg time/rank:
+  - #### Strong Scaling:
+    For all input types, the average time for the comp region decreased as more processors were used. This is expected as using more processors means that the data will be split into smaller chunks between processors, making the overall local sorting much quicker. Furthermore, this decrease was more prevalent in larger input sizes due to the fact that sorting smaller input sizes is already a fast computation. As for the main region, for every input type, the average time actually increased as more processors were used for input sizes 2<sup>16</sup>, 2<sup>18</sup>, and 2<sup>20</sup>. We suspect that this is because adding more processors for smaller input sizes just increases the overhead for communicating between processors with little benefit towards the actual computation time. This interaction can also kind of be seen with input sizes 2<sup>22</sup> and 2<sup>24</sup>, where the average time decreased as the number of processors increased, up to 16 processors, at which point, the time started to increase. With the larger input sizes of 2<sup>26</sup> and 2<sup>28</sup>, the average time constantly decreased with no increase at any point, most likely because the benefit from having more processors outweighed the increased overhead.
+    - ##### Avg time/rank:
         ![Strong Scaling Input 2^28](Plots/Bitonicsort_Plots/strong_scaling_28.jpg)
         ![Strong Scaling Input 2^26](Plots/Bitonicsort_Plots/strong_scaling_26.jpg)
         ![Strong Scaling Input 2^24](Plots/Bitonicsort_Plots/strong_scaling_24.jpg)
@@ -560,59 +561,90 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
         ![Strong Scaling Input 2^20](Plots/Bitonicsort_Plots/strong_scaling_20.jpg)
         ![Strong Scaling Input 2^18](Plots/Bitonicsort_Plots/strong_scaling_18.jpg)
         ![Strong Scaling Input 2^16](Plots/Bitonicsort_Plots/strong_scaling_16.jpg)
-
-      For all input types, the average time for the comp region decreased as more processors were used. This is expected as using more processors means that the data will be split into smaller chunks between processors, making the overall local sorting much quicker. Furthermore, this decrease was more prevalent in larger input sizes due to the fact that sorting smaller input sizes is already a fast computation. As for the main region, for every input type, the average time actually increased as more processors were used for input sizes 2<sup>16</sup>, 2<sup>18</sup>, and 2<sup>20</sup>. We suspect that this is because adding more processors for smaller input sizes just increases the overhead for communicating between processors with little benefit towards the actual computation time. This interaction can also kind of be seen with input sizes 2<sup>22</sup> and 2<sup>24</sup>, where the average time decreased as the number of processors increased, up to 16 processors, at which point, the time started to increase. With the larger input sizes of 2<sup>26</sup> and 2<sup>28</sup>, the average time constantly decreased with no increase at any point, most likely because the benefit from having more processors outweighed the increased overhead.
-
-  - ### Strong Scaling Speedup
-    - ### Main Region:
+  - #### Strong Scaling Speedup
+    - ##### Main Region:
       ![Strong Scaling Speedup Main Region](Plots/Bitonicsort_Plots/strong_scaling_speedup_main.jpg)
-    - ### Comp Region:
+    - ##### Comp Region:
       ![Strong Scaling Speedup Comp Region](Plots/Bitonicsort_Plots/strong_scaling_speedup_comp.jpg)
-    - ### Comm Region:
+    - ##### Comm Region:
       ![Strong Scaling Speedup Comm Region](Plots/Bitonicsort_Plots/strong_scaling_speedup_comm.jpg)
-
-  - ### Weak Scaling
-    - ### Main Region:
+  - #### Weak Scaling
+    - ##### Main Region:
       ![Strong Scaling Speedup Main Region](Plots/Bitonicsort_Plots/weak_scaling_main.jpg)
-    - ### Comp Region:
+    - ##### Comp Region:
       ![Strong Scaling Speedup Comp Region](Plots/Bitonicsort_Plots/weak_scaling_comp.jpg)
-    - ### Comm Region:
+    - ##### Comm Region:
       ![Strong Scaling Speedup Comm Region](Plots/Bitonicsort_Plots/weak_scaling_comm.jpg)
 
-- ### Sample Sort
-  - ### Strong Scaling:
-    - Avg time/rank:
-      - Input size of 2<sup>28</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_28.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_28.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_28.png)
-      - Input size of 2<sup>26</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_26.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_26.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_26.png)
-      - Input size of 2<sup>24</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_24.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_24.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_24.png)
-      - Input size of 2<sup>22</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_22.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_22.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_22.png)
-      - Input size of 2<sup>20</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_20.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_20.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_20.png)
-      - Input size of 2<sup>18</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_18.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_18.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_18.png)
-      - Input size of 2<sup>16</sup>:
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_main_strong_16.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comm_strong_16.png)
-        ![Strong Scaling Input 2^28](Plots/Samplesort_Plots/samplesort_comp_strong_16.png)
+- ### Samplesort (Sam Zhang)
+  - #### Strong Scaling (Avg time/rank):
+    The strong scaling analysis for samplesort suggests the runtime does not necessarily decreases as the number of processors increases. Even more interestingly, we observe using more processors can lead to slower runtime when the input size is small. This observation is caused by the communication overhead introduced with using more processors, and the plots produced using the "comm" region best illustrate this overhead. Although using more processors on smaller inputs can lead to longer runtime, using more processors on larger inputs does lead to shorter runtime, which is expected because using more processors lead to greater amount of shorter buckets, which means sorting them require less time. Another interesting note is that we observe the perturbed input require longer sorting time than other input types, and this is because of bad sample selections. Our samplesort algorithm always select the first, the last, and evenly spaced samples from local sequences, but our data generation algorithm always have the first element of the local sequence randomized when perturbed flag is selected. This means we can guarantee at least one bad sample from each local sequence, which can lead to worst-case splitter selection, causing buckets to have uneven sizes.
+    - ##### Input Size 2^16:
+      ![](Plots/Samplesort_Plots/samplesort_main_strong_16.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_strong_16.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_strong_16.png)
+    - ##### Input Size 2^18:
+      ![](Plots/Samplesort_Plots/samplesort_main_strong_18.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_strong_18.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_strong_18.png)
+    - ##### Input Size 2^20:
+      ![](Plots/Samplesort_Plots/samplesort_main_strong_20.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_strong_20.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_strong_20.png)
+    - ##### Input Size 2^22:
+      ![](Plots/Samplesort_Plots/samplesort_main_strong_22.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_strong_22.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_strong_22.png)
+    - ##### Input Size 2^24:
+      ![](Plots/Samplesort_Plots/samplesort_main_strong_24.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_strong_24.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_strong_24.png)
+    - ##### Input Size 2^26:
+      ![](Plots/Samplesort_Plots/samplesort_main_strong_26.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_strong_26.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_strong_26.png)
+    - ##### Input Size 2^28:
+      ![](Plots/Samplesort_Plots/samplesort_main_strong_28.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_strong_28.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_strong_28.png)
+  - #### Strong Scaling Speedup (Avg time/rank):
+    The strong scaling speedup analysis for samplesort further confirms the observation using more processors does not necessarily lead to efficiency increases. The plots produced using the "main" region shows the speedup for small input size is low, while those for large input size is significantly higher. The plots produced using the "comm" region further highlights the communication overhead caused by using more processors. As shown in the "comm" region graphs, the speedup approaches 0 when the input size is small.
+    - ##### Sorted:
+      ![](Plots/Samplesort_Plots/samplesort_main_speedup_sorted.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_speedup_sorted.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_speedup_sorted.png)
+    - ##### Reverse:
+      ![](Plots/Samplesort_Plots/samplesort_main_speedup_reverse.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_speedup_reverse.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_speedup_reverse.png)
+    - ##### Perturbed:
+      ![](Plots/Samplesort_Plots/samplesort_main_speedup_perturbed.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_speedup_perturbed.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_speedup_perturbed.png)
+    - ##### Random:
+      ![](Plots/Samplesort_Plots/samplesort_main_speedup_random.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_speedup_random.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_speedup_random.png)
+  - #### Weak Scaling (Avg time/rank):
+    - ##### Sorted:
+      ![](Plots/Samplesort_Plots/samplesort_main_weak_sorted.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_weak_sorted.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_weak_sorted.png)
+    - ##### Reverse:
+      ![](Plots/Samplesort_Plots/samplesort_main_weak_reverse.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_weak_reverse.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_weak_reverse.png)
+    - ##### Perturbed:
+      ![](Plots/Samplesort_Plots/samplesort_main_weak_perturbed.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_weak_perturbed.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_weak_perturbed.png)
+    - ##### Random:
+      ![](Plots/Samplesort_Plots/samplesort_main_weak_random.png)
+      ![](Plots/Samplesort_Plots/samplesort_comm_weak_random.png)
+      ![](Plots/Samplesort_Plots/samplesort_comp_weak_random.png)
         
-- ### Merge Sort
-With the caliper files there were a multitude of issues regading the connection with Grace. However, a connection was established long enough to produce caliper files and ensuer that the local results were able to be scaled. Future scripts will be an to fulfill the needs of the report and presentation and graphed using Jupyter.
+- ### Merge Sort ((Jack Couture))
+  With the caliper files there were a multitude of issues regading the connection with Grace. However, a connection was established long enough to produce caliper files and ensuer that the local results were able to be scaled. Future scripts will be an to fulfill the needs of the report and presentation and graphed using Jupyter.
 
 ## 5. Presentation
 
