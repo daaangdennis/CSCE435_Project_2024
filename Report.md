@@ -648,6 +648,45 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
 - ### Merge Sort ((Jack Couture))
   With the caliper files there were a multitude of issues regading the connection with Grace. However, a connection was established long enough to produce caliper files and ensuer that the local results were able to be scaled. Future scripts will be an to fulfill the needs of the report and presentation and graphed using Jupyter.
 
+- ### Radix Sort (Deric Le)
+  - #### Strong Scaling:
+  - Comp region
+    - For all input types, average time decreased as amount of processors increased
+    - Total time taken for comp region increased as input size increased
+    - this makes sense as more processors will decrease the workload per processor
+  - Comm region
+    - Average time taken is fairly stable as amount of processors increased
+    - Total time taken for comm region increased as input size increased
+  - Main region
+    - For input types 2^16, 2^18, 2^20, 2^22, the average time increased as more processors were used. For input type 2^24, there is an initial decrease in time between 2 and 4 processors, and then the average time increases as the amount of processors increase. For smaller input sizes, increasing the amount of processors may decrease computational load on each processor, but increases the communication overhead. So for input 2^24, while there was an initial cut in time, the communication costs again start to increase after 4 processors, leading to an increase in average time.
+    - ##### Avg time/rank:
+    - ![](Plots/Radixsort_Plots/radix-2-16-strong.png)
+    - ![](Plots/Radixsort_Plots/radix-2-18-strong.png)
+    - ![](Plots/Radixsort_Plots/radix-2-20-strong.png)
+    - ![](Plots/Radixsort_Plots/radix-2-22-strong.png)
+    - ![](Plots/Radixsort_Plots/radix-2-24-strong.png)
+    - ![](Plots/Radixsort_Plots/radix-2-26-strong.png)
+    - ![](Plots/Radixsort_Plots/radix-2-28-strong.png)
+  
+  - #### Strong Scaling Speedup
+  - Comp region
+    - Graphs increase exponentially for larger input sizes as num of processors increase.
+    - For smaller input sizes, there is less exponential growth; they are more linear.
+    - this makes sense as more processors will decrease the workload/processor
+  - Comm region
+    - Graphs are spiky
+    - for input size's 2^16, 2^18, 2^20, the speedup has a generally negative trend
+    - for larger input sizes, speedup has a generally positive trend
+  - Main region
+    - as input size increases, speedup increases
+    - as number of processors increase,
+      - for large input: speedup increases
+      - for small input: speedup slightly decreases
+      - ![](Plots/Radixsort_Plots/radix-speedup.png)
+
+  - #### Weak Scaling
+    From the weak scaling graphs, we can see that our implementation for bitonic sort is scalable and able to handle larger problem sizes without significant degradation in performance. For the main region, although the line is not perfectly flat and has an increase, looking at the y-axis, we can see that the increase is only about 1.5 seconds, which is not what we would consider as a significant increase. This slight increase is most likely due to the increased communication overhead from using more processors. We can kind of see that effect with the weak scaling graphs for the comm region, which shows that as the problem size got bigger and more processors were used, the average execution time slightly increased.
+    - ![](Plots/Radixsort_Plots/radix-weak.png)
 ## 5. Presentation
 
 Plots for the presentation should be as follows:
