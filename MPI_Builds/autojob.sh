@@ -2,8 +2,8 @@
 
 # Values for a, b, and c
 arr_size=(16 18 20 22 24 26 28)
-arr_type_flag=(1)
-procs=(256)
+arr_type_flag=(0)
+procs=(512)
 
 # Loop over each value of c
 for c in "${procs[@]}"; do

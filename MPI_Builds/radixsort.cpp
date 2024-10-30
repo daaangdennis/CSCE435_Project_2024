@@ -16,16 +16,17 @@
 
 // global constants definitions
 #define b 32           // number of bits for integer
-#define g 8            // group of bits for each scan
-#define N b / g        // number of passes
-#define B (1 << g)     // number of buckets, 2^g
+// Dynamic g calculation based on processor count
+inline int calculate_g(int num_processors) {
+    return (int)ceil(log2(num_processors)) + 1;  // Ensure B is always at least 2*P
+}
 #define MASTER 0       // taskid of first task
-#define DEBUG 0        // booL: print debug statements?
+#define DEBUG 0        // bool: print debug statements?
 
-// MPI tags constants, offset by max bucket to avoid collisions
-#define COUNTS_TAG_NUM  B + 1
-#define PRINT_TAG_NUM  COUNTS_TAG_NUM + 1
-#define NUM_TAG PRINT_TAG_NUM + 1
+// MPI tags constants will be set dynamically based on B
+int COUNTS_TAG_NUM;
+int PRINT_TAG_NUM;
+int NUM_TAG;
 
 // structure encapsulating buckets with vectors of elements
 struct List {
@@ -76,15 +77,17 @@ unsigned bits(unsigned x, int k, int j) {
     return (x >> k) & ~(~0 << j);
 }
 
-// Modified radix_sort function to properly nest comp and comm regions
-std::vector<unsigned int> radix_sort(std::vector<unsigned int>& a, std::vector<List>& buckets, const int P, const int rank, int& n) {
+// Modified radix_sort function with dynamic bucket sizing
+std::vector<unsigned int> radix_sort(std::vector<unsigned int>& a, std::vector<List>& buckets, 
+                                   const int P, const int rank, int& n, const int g, const int B) {
     CALI_MARK_BEGIN("comp");
     std::vector<std::vector<int>> count(B, std::vector<int>(P));
     std::vector<int> l_count(B);
-    int l_B = B / P;
+    int l_B = B / P;  // Now safe because B is always >= 2*P
     std::vector<std::vector<int>> p_sum(l_B, std::vector<int>(P));
     CALI_MARK_END("comp");
 
+    const int N = b / g;  // number of passes calculated dynamically
     MPI_Request req;
     MPI_Status stat;
 
@@ -187,7 +190,7 @@ std::vector<unsigned int> radix_sort(std::vector<unsigned int>& a, std::vector<L
 bool check_correctness(const std::vector<unsigned int>& a, const std::vector<int>& p_n, int rank, int size) {
     CALI_MARK_BEGIN("correctness_check");
     bool is_sorted = validate_sort(a);
-    
+
     #if DEBUG
     print_array(size, rank, a, p_n);
     #endif
@@ -218,11 +221,29 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+    // Calculate dynamic values based on processor count
+    const int g = calculate_g(size);
+    const int B = 1 << g;  // number of buckets, 2^g
+    
+    // Set MPI tags based on dynamic B
+    COUNTS_TAG_NUM = B + 1;
+    PRINT_TAG_NUM = COUNTS_TAG_NUM + 1;
+    NUM_TAG = PRINT_TAG_NUM + 1;
+
+    if (rank == 0) {
+        #if DEBUG
+        printf("Running with parameters:\n");
+        printf("Processors: %d\n", size);
+        printf("Bits per group (g): %d\n", g);
+        printf("Number of buckets (B): %d\n", B);
+        printf("Buckets per processor: %d\n", B/size);
+        #endif
+    }
+
     // Initialize Caliper and Adiak
     cali_init();
     cali::ConfigManager mgr;
     mgr.start();
-
 
     unsigned int global_seq_size = round((pow(2, std::stoi(argv[1]))));
     unsigned int flag = std::atoi(argv[2]);
@@ -242,17 +263,19 @@ int main(int argc, char** argv) {
     adiak::value("scalability", "strong");
     adiak::value("group_num", 25);
     adiak::value("implementation_source", "online");
+    adiak::value("bits_per_group", g);
+    adiak::value("num_buckets", B);
 
     // Generate input data
     CALI_MARK_BEGIN("data_init_runtime");
     std::vector<unsigned int> a = decentralized_generation(rank, size, global_seq_size, flag);
     int n = a.size();
-    std::vector<List> buckets(B);
+    std::vector<List> buckets(B);  // Now using dynamic B
     CALI_MARK_END("data_init_runtime");
 
     // Sort the data
     MPI_Barrier(MPI_COMM_WORLD);
-    a = radix_sort(a, buckets, size, rank, n);
+    a = radix_sort(a, buckets, size, rank, n, g, B);
     MPI_Barrier(MPI_COMM_WORLD);
 
     // Exchange array sizes
@@ -282,7 +305,17 @@ int main(int argc, char** argv) {
     check_correctness(a, p_n, rank, size);
 
     CALI_MARK_END("main");
-    
+
+    // validate it
+    bool is_sorted = validate_sort(a);
+    if (rank == 0) {
+        if (is_sorted) {
+            printf("Sorting successful");
+        } else {
+            printf("Sorting failed: Array is NOT sorted.");
+        }
+    }
+
     mgr.stop();
     mgr.flush();
     MPI_Finalize();

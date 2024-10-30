@@ -439,26 +439,26 @@ CALI_MARK_END("comp");
 
 ```
 # Radix Sort
-0.393 main
-├─ 0.000 MPI_Init
-├─ 0.026 main
-│  ├─ 0.001 data_init_runtime
-│  ├─ 0.024 comp_large
-│  │  ├─ 0.006 MPI_Barrier
-│  │  └─ 0.018 radix_sort
-│  │     ├─ 0.003 comp_large
-│  │     ├─ 0.015 comm_large
-│  │     │  ├─ 0.002 MPI_Isend
-│  │     │  └─ 0.010 MPI_Recv
-│  │     └─ 0.000 comp_small
-│  ├─ 0.000 comm_small
-│  │  ├─ 0.000 MPI_Isend
-│  │  └─ 0.000 MPI_Recv
-│  └─ 0.000 comp_small
+2.623 main
+├─ 0.003 MPI_Comm_dup
 ├─ 0.000 MPI_Finalize
-├─ 0.000 MPI_Initialized
 ├─ 0.000 MPI_Finalized
-└─ 0.000 MPI_Comm_dup
+├─ 0.000 MPI_Initialized
+└─ 2.620 main
+   ├─ 0.255 MPI_Barrier
+   ├─ 0.000 MPI_Init
+   ├─ 0.434 comm
+   │  ├─ 0.426 comm_large
+   │  │  ├─ 0.017 MPI_Isend
+   │  │  └─ 0.384 MPI_Recv
+   │  └─ 0.008 comm_small
+   │     ├─ 0.001 MPI_Isend
+   │     └─ 0.006 MPI_Recv
+   ├─ 0.169 comp
+   │  ├─ 0.164 comp_large
+   │  └─ 0.005 comp_small
+   ├─ 0.000 correctness_check
+   └─ 0.023 data_init_runtime
 ```
 
 ```
