@@ -723,6 +723,9 @@ Plots for the presentation should be as follows:
 
 Analyze these plots and choose a subset to present and explain in your presentation.
 
+Link to Presentation: https://docs.google.com/presentation/d/1DXX47mews-jL42tGsXIYynL6IjeSmpn-KnhKiRSiyMY/edit?usp=sharing
+
+
 ## 6. Final Report
 
 Submit a zip named `TeamX.zip` where `X` is your team number. The zip should contain the following files:
