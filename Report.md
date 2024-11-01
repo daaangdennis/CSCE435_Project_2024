@@ -646,8 +646,32 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
       ![](Plots/Samplesort_Plots/samplesort_comp_weak_random.png)
         
 - ### Merge Sort ((Jack Couture))
-  With the caliper files there were a multitude of issues regading the connection with Grace. However, a connection was established long enough to produce caliper files and ensuer that the local results were able to be scaled. Future scripts will be an to fulfill the needs of the report and presentation and graphed using Jupyter.
-
+ - #### Strong Scaling:
+    ANALYZE
+    - ##### Avg time/rank:
+        ![Strong Scaling Input 2^28](Plots/Merge_Plots/2_28.png)
+        ![Strong Scaling Input 2^26](Plots/Merge_Plots/2_26.png)
+        ![Strong Scaling Input 2^24](Plots/Merge_Plots/2_24.png)
+        ![Strong Scaling Input 2^22](Plots/Merge_Plots/2_22.png)
+        ![Strong Scaling Input 2^20](Plots/Merge_Plots/2_20.png)
+        ![Strong Scaling Input 2^18](Plots/Merge_Plots/2_18.png)
+        ![Strong Scaling Input 2^16](Plots/Merge_Plots/2_16.png)
+  - #### Strong Scaling Speedup
+    ANAYLUYZE
+    - ##### Main Region:
+      ![Strong Scaling Speedup Main Region](Plots/Merge_Plots/main.png)
+    - ##### Comp Region:
+      ![Strong Scaling Speedup Comp Region](Plots/Merge_Plots/comp.png)
+    - ##### Comm Region:
+      ![Strong Scaling Speedup Comm Region](Plots/Merge_Plots/comm.png)
+  - #### Weak Scaling
+    AnALZ
+    - ##### Main Region:
+      ![Strong Scaling Speedup Main Region](Plots/Merge_Plots/weak_main.png)
+    - ##### Comp Region:
+      ![Strong Scaling Speedup Comp Region](Plots/Merge_Plots/weak_comp.png)
+    - ##### Comm Region:
+      ![Strong Scaling Speedup Comm Region](Plots/Merge_Plots/weak_comm.png)
 - ### Radix Sort (Deric Le)
   - #### Strong Scaling:
   - Comp region
