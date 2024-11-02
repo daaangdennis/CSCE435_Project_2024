@@ -60,10 +60,7 @@ void parallel_transpose_and_reshape(std::vector<unsigned int> &local_vector, uns
     CALI_MARK_BEGIN("comp");
     CALI_MARK_BEGIN("comp_large");
     // Copy received elements
-    for (unsigned int i = 0; i < r; ++i)
-    {
-        transposed_vector[i] = recv_buffer[i];
-    }
+    transposed_vector = recv_buffer;
 
     // Step 2: Reshaping
     for (unsigned int i = 0; i < r; ++i)
@@ -127,11 +124,8 @@ void parallel_shift_and_unshift(std::vector<unsigned int> &local_vector, unsigne
     CALI_MARK_BEGIN("comp");
     CALI_MARK_BEGIN("comp_small");
     // Step 1: Copy elements to send buffer (last r/2 elements) while popping them from the main vector
-    for (unsigned int i = 0; i < shift_size; i++)
-    {
-        send_buffer[i] = local_vector[(r - 1) - i];
-        local_vector.pop_back();
-    }
+    std::copy(local_vector.end() - shift_size, local_vector.end(), send_buffer.begin());
+    local_vector.resize(local_vector.size() - shift_size);
     CALI_MARK_END("comp_small");
     CALI_MARK_END("comp");
 
@@ -145,27 +139,19 @@ void parallel_shift_and_unshift(std::vector<unsigned int> &local_vector, unsigne
     CALI_MARK_END("comm");
 
     CALI_MARK_BEGIN("comp");
-    CALI_MARK_BEGIN("comp_large");
+    CALI_MARK_BEGIN("comp_small");
     // Starting processor behavior
     if (taskid == 0)
     {
-        // Step 2: Insert 0 shift_size times at the beginning
-        for (unsigned int i = 0; i < shift_size; i++)
-        {
-            local_vector.insert(local_vector.begin(), 0);
-        }
+        // Insert zeros at the beginning for starting processor
+        local_vector.insert(local_vector.begin(), shift_size, 0);
     }
-
-    // Rest of the processor behavior
-    if (taskid != 0)
+    else
     {
-        // Step 3: Insert received elements at the beginning of vector
-        for (unsigned int i = 0; i < shift_size; i++)
-        {
-            local_vector.insert(local_vector.begin(), recv_buffer[i]);
-        }
+        // Insert received elements at the beginning for other processors
+        local_vector.insert(local_vector.begin(), recv_buffer.begin(), recv_buffer.end());
     }
-    CALI_MARK_END("comp_large");
+    CALI_MARK_END("comp_small");
     CALI_MARK_END("comp");
 
     // Step 6
@@ -185,13 +171,9 @@ void parallel_shift_and_unshift(std::vector<unsigned int> &local_vector, unsigne
 
     CALI_MARK_BEGIN("comp");
     CALI_MARK_BEGIN("comp_small");
-    // Step 1: Copy elements to send buffer unshift (first r/2 elements)
-    for (unsigned int i = 0; i < shift_size; i++)
-    {
-        send_buffer_unshift[i] = local_vector[i];
-    }
-
-    // Erase these elements only after copying them
+    // Copy first shift_size elements to send buffer unshift
+    std::copy(local_vector.begin(), local_vector.begin() + shift_size, send_buffer_unshift.begin());
+    // Remove these elements
     local_vector.erase(local_vector.begin(), local_vector.begin() + shift_size);
     CALI_MARK_END("comp_small");
     CALI_MARK_END("comp");
@@ -206,27 +188,19 @@ void parallel_shift_and_unshift(std::vector<unsigned int> &local_vector, unsigne
     CALI_MARK_END("comm");
 
     CALI_MARK_BEGIN("comp");
-    CALI_MARK_BEGIN("comp_large");
+    CALI_MARK_BEGIN("comp_small");
     // Ending processor behavior
     if (taskid == s - 1)
     {
-        // Step 2: Insert sending buffer (left over numbers from shift part)
-        for (unsigned int i = 0; i < shift_size; i++)
-        {
-            local_vector.push_back(send_buffer[shift_size - 1 - i]);
-        }
+        // For ending processor, insert original send buffer elements
+        std::copy(send_buffer.begin(), send_buffer.end(), std::back_inserter(local_vector));
     }
-
-    // Rest of the processor behavior
-    if (taskid != s - 1)
+    else
     {
-        // Step 3: Insert received elements at the end of vector
-        for (unsigned int i = 0; i < shift_size; i++)
-        {
-            local_vector.push_back(recv_buffer_unshift[i]);
-        }
+        // For other processors, insert received elements
+        std::copy(recv_buffer_unshift.begin(), recv_buffer_unshift.end(), std::back_inserter(local_vector));
     }
-    CALI_MARK_END("comp_large");
+    CALI_MARK_END("comp_small");
     CALI_MARK_END("comp");
     // Step 8
     // print_matrix(local_vector, n, r, s, "Step 8: Unshift", taskid, MPI_COMM_WORLD);
