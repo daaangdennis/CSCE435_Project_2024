@@ -463,19 +463,26 @@ CALI_MARK_END("comp");
 
 ```
 # Column Sort
-0.386 main
-├─ 0.000 MPI_Init
-├─ 0.014 main
-│  ├─ 0.001 data_init_runtime
-│  └─ 0.013 correctness_check
-│     ├─ 0.000 MPI_Recv
-│     ├─ 0.000 MPI_Send
-│     ├─ 0.012 MPI_Reduce
-│     └─ 0.000 MPI_Bcast
+1274.277 main
+├─ 0.000 MPI_Comm_dup
 ├─ 0.000 MPI_Finalize
-├─ 0.000 MPI_Initialized
 ├─ 0.000 MPI_Finalized
-└─ 0.001 MPI_Comm_dup
+├─ 0.000 MPI_Init
+├─ 0.000 MPI_Initialized
+├─ 1.819 correctness_check
+│  ├─ 0.000 MPI_Bcast
+│  ├─ 0.000 MPI_Recv
+│  ├─ 0.000 MPI_Reduce
+│  └─ 0.000 MPI_Send
+├─ 2.575 data_init_runtime
+└─ 1269.569 sort_runtime
+   ├─ 949.729 comm
+   │  ├─ 6.885 MPI_Allgather
+   │  ├─ 0.002 MPI_Barrier
+   │  └─ 553.992 MPI_Sendrecv
+   └─ 316.721 comp
+      ├─ 4.249 comp_large
+      └─ 312.472 comp_smal
 ```
 
 ### 3b. Collect Metadata
@@ -542,6 +549,7 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
 ### 4c. You should measure the following performance metrics
 
 - `Time`
+
   - Min time/rank
   - Max time/rank
   - Avg time/rank
@@ -551,16 +559,17 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
 - ### <ins>Note:</ins> Due to issues with Grace, plot points for 1024 processors will not be shown.
 
 - ### Bitonic Sort (Dennis Dang)
+
   - #### Strong Scaling:
     For all input types, the average time for the comp region decreased as more processors were used. This is expected as using more processors means that the data will be split into smaller chunks between processors, making the overall local sorting much quicker. Furthermore, this decrease was more prevalent in larger input sizes due to the fact that sorting smaller input sizes is already a fast computation. With the comm region, the average time remained fairly stable with a slight increase as more processors were used. This is also expected as adding more processors means more overhead when it comes to communicating between processors. As for the main region, for every input type, the average time actually increased as more processors were used for input sizes 2<sup>16</sup>, 2<sup>18</sup>, and 2<sup>20</sup>. We suspect that this is because adding more processors for smaller input sizes just increases the overhead for communicating between processors with little benefit towards the already fast computation time. This interaction can also kind of be seen with input sizes 2<sup>22</sup> and 2<sup>24</sup>, where the average time decreased as the number of processors increased, up to 16 processors, at which point, the time started to increase. With the larger input sizes of 2<sup>26</sup> and 2<sup>28</sup>, the average time constantly decreased with no increase at any point, most likely because the benefit from having more processors outweighed the increased overhead.
     - ##### Avg time/rank:
-        ![Strong Scaling Input 2^28](Plots/Bitonicsort_Plots/strong_scaling_28.jpg)
-        ![Strong Scaling Input 2^26](Plots/Bitonicsort_Plots/strong_scaling_26.jpg)
-        ![Strong Scaling Input 2^24](Plots/Bitonicsort_Plots/strong_scaling_24.jpg)
-        ![Strong Scaling Input 2^22](Plots/Bitonicsort_Plots/strong_scaling_22.jpg)
-        ![Strong Scaling Input 2^20](Plots/Bitonicsort_Plots/strong_scaling_20.jpg)
-        ![Strong Scaling Input 2^18](Plots/Bitonicsort_Plots/strong_scaling_18.jpg)
-        ![Strong Scaling Input 2^16](Plots/Bitonicsort_Plots/strong_scaling_16.jpg)
+      ![Strong Scaling Input 2^28](Plots/Bitonicsort_Plots/strong_scaling_28.jpg)
+      ![Strong Scaling Input 2^26](Plots/Bitonicsort_Plots/strong_scaling_26.jpg)
+      ![Strong Scaling Input 2^24](Plots/Bitonicsort_Plots/strong_scaling_24.jpg)
+      ![Strong Scaling Input 2^22](Plots/Bitonicsort_Plots/strong_scaling_22.jpg)
+      ![Strong Scaling Input 2^20](Plots/Bitonicsort_Plots/strong_scaling_20.jpg)
+      ![Strong Scaling Input 2^18](Plots/Bitonicsort_Plots/strong_scaling_18.jpg)
+      ![Strong Scaling Input 2^16](Plots/Bitonicsort_Plots/strong_scaling_16.jpg)
   - #### Strong Scaling Speedup
     The strong scaling speedup graphs further reinforce what was already discussed with the strong scaling graphs. For the main region, we can see that larger input sizes like 2<sup>26</sup> and 2<sup>28</sup> had relatively significant speedup, medium-sized inputs like 2<sup>22</sup> and 2<sup>24</sup> had a slight speedup and then started to decline, and small input sizes like 2<sup>16</sup>, 2<sup>18</sup>, and 2<sup>20</sup> did not have any speedup and just got slower with more processors. For the comp region, we can see a strong increase in speedup for all input sizes with larger input sizes experiencing greater speedup, which as stated before, is expected as the amount of sorting each processor does locally is lessened with added processors. Lastly, for the comm region, the graphs for reverse, sorted, and random input seem a little sporadic, but the general trend is that as more processors are added, the communication time increases, likely due to the increased communication overhead. However, for perturbed inputs, the speedup for the comm region actually increases. We suspect that this could be due to the fact that the runtime for perturbed inputs in general is very slow in comparison to the other input types, resulting in the benefit of having multiple processors being greater than the overhead that they bring.
     - ##### Main Region:
@@ -577,6 +586,42 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
       ![Strong Scaling Speedup Comp Region](Plots/Bitonicsort_Plots/weak_scaling_comp.jpg)
     - ##### Comm Region:
       ![Strong Scaling Speedup Comm Region](Plots/Bitonicsort_Plots/weak_scaling_comm.jpg)
+
+- ### Column Sort (Jose Ortiz)
+
+  - #### Strong Scaling:
+
+    The performance analysis of Columnsort across different regions—computation, communication, and main reveals distinct trends as input sizes and processor counts increase. In the computation region, average execution time consistently decreases as the number of processors increases, especially for larger input sizes (2<sup>24 and above). This behavior aligns with expectations, as distributing the workload across more processors allows for parallel processing of smaller data chunks, effectively reducing computation time. In the communication region, there are notable spikes when we use 8 processors. This spike indicates a substantial communication overhead particularly during the transposing and shifting phase, where extensive data exchange between processors is required. In the main region, which reflects overall performance, we observe performance improves as we increase the number of processors. This becomes more noticable when increasing the array size as it creates a exponential decrease which is expected. Increasing the data size while increasing processors will reduce the chance of overhead occuring. In summary, Columnsort’s performance is strongly affected by its communication requirements, and its efficiency depends on balancing input size with processor count to minimize total execution time.
+
+    - ##### Avg time/rank:
+      ![Strong Scaling Input 2^28](Plots/Columnsort_Plots/sc16.jpg)
+      ![Strong Scaling Input 2^26](Plots/Columnsort_Plots/sc18.jpg)
+      ![Strong Scaling Input 2^24](Plots/Columnsort_Plots/sc20.jpg)
+      ![Strong Scaling Input 2^22](Plots/Columnsort_Plots/sc22.jpg)
+      ![Strong Scaling Input 2^20](Plots/Columnsort_Plots/sc24.jpg)
+      ![Strong Scaling Input 2^18](Plots/Columnsort_Plots/sc26.jpg)
+      ![Strong Scaling Input 2^16](Plots/Columnsort_Plots/sc28.jpg)
+
+- #### Strong Scaling Speedup
+
+  The speedup patterns in Columnsort reveal complex scaling behaviors across different input sizes and processor configurations. For smaller input sizes, the algorithm shows slight speedup potential with efficiency actually decreasing as more processors are added. This poor speedup occurs because communication overhead dominates, negating the benefits of parallel processing—the cost of coordinating among processors outweighs any computational gains from splitting smaller datasets. For medium-sized inputs, we see a more varied speedup pattern. Initially, speedup increases as processors are added, typically up to 8–16 processors, before plateauing/declining. This indicates a point of diminishing returns, where further increases in processor count do not enhance performance, as rising communication costs begin to offset computational benefits.The best speedup behavior appears with larger input sizes. Here, the algorithm scales more effectively, achieving higher speedup as processors are added. For these larger datasets, the computational workload per processor remains substantial enough to balance out the communication overhead. A key factor impacting speedup is the communication phase. The sharp spikes in communication time seen in the middle graphs highlight certain stages where intensive all-to-all communication becomes a bottleneck. This communication pattern is fundamental to the algorithm, as data redistribution among processors is necessary during transposing and shifting, which limits parallel efficiency.
+
+- ##### Main Region:
+  ![Strong Scaling Speedup Main Region](Plots/Columnsort_Plots/scsmain.jpg)
+- ##### Comp Region:
+  ![Strong Scaling Speedup Comp Region](Plots/Columnsort_Plots/scscomm.jpg)
+- ##### Comm Region:
+  ![Strong Scaling Speedup Comm Region](Plots/Columnsort_Plots/scscomp.jpg)
+- #### Weak Scaling
+
+  The weak scaling behavior of Columnsort, where problem size grows proportionally with the number of processors, highlights some notable trends across different regions. In the computation region, performance remains relatively stable for most input sizes. This stability suggests that Columnsort’s computational component maintains efficiency when data size and processor count scale up together, handling the increased workload per processor effectively under weak scaling. However, the communication region poses significant challenges for weak scaling efficiency. The sharp peaks in communication time indicates that communication overhead grows disproportionately as both data size and processor count increase. This issue likely arises from the transposing and shifting steps, where scaling both the problem size and the processor count leads to more extensive and complex communication patterns. In the main region we see the combined effects of computation and communication. For smaller per-processor input sizes, execution time tends to increase more than expected under weak scaling, indicating reduced efficiency. This is evident in the upward trends in the main execution time, showing that the algorithm’s efficiency slows at higher processor counts. Overall, this shows that Columnsort’s weak scaling efficiency is heavily impacted by its communication requirements, making it challenging to sustain performance when both data size and processor count increase proportionally.
+
+  - ##### Main Region:
+    ![Strong Scaling Speedup Main Region](Plots/Columnsort_Plots/wsmain.jpg)
+  - ##### Comp Region:
+    ![Strong Scaling Speedup Comp Region](Plots/Columnsort_Plots/wscomp.jpg)
+  - ##### Comm Region:
+    ![Strong Scaling Speedup Comm Region](Plots/Columnsort_Plots/wscomm.jpg)
 
 - ### Samplesort (Sam Zhang)
   - #### Strong Scaling (Avg time/rank):
@@ -644,35 +689,35 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
       ![](Plots/Samplesort_Plots/samplesort_main_weak_random.png)
       ![](Plots/Samplesort_Plots/samplesort_comm_weak_random.png)
       ![](Plots/Samplesort_Plots/samplesort_comp_weak_random.png)
-        
 - ### Merge Sort ((Jack Couture))
- - #### Strong Scaling:
-    As far as scaling goes, overall as the number of processors increased, the average time for regions and input configurations decreased intially. Hoever, this began to plateau around 128 to 256 processors or at times began to increase the average time. This is due to the overhead of managing the processors as well as merge sort beginning to see diminishing returns due to the merging of "buckets" leading to less and less opportunities to utilize parallel computing. Furthermore, perturbed seemed to overall exhibit higher processing times across most input sizes which most likely indicates this parallelization of merge sort is not well optimized for that input type. Finally, comp showed consistent improvement with increased processors and larger inputs indicating it benefitted from parallelization. The comm regiion showed less improvement and even showed an increase in time as processor count grew most likely indiciating the toll of communication overhead. The main region seemed to show improvement but began to plateu faster than camp with perturbed showing larger variance.
-    - ##### Avg time/rank:
-        ![Strong Scaling Input 2^28](Plots/Merge_Plots/2_28.png)
-        ![Strong Scaling Input 2^26](Plots/Merge_Plots/2_26.png)
-        ![Strong Scaling Input 2^24](Plots/Merge_Plots/2_24.png)
-        ![Strong Scaling Input 2^22](Plots/Merge_Plots/2_22.png)
-        ![Strong Scaling Input 2^20](Plots/Merge_Plots/2_20.png)
-        ![Strong Scaling Input 2^18](Plots/Merge_Plots/2_18.png)
-        ![Strong Scaling Input 2^16](Plots/Merge_Plots/2_16.png)
-  - #### Strong Scaling Speedup
-    For the comm region, the random and sorted input types peaked at low processor counts then struggled as the number of processors increased. Similar results can be seen with reverse input with a sharp initial speedup that quickly falls as communication overhead began to negatively impact performance. With perturbed there was a erratic speedup with large inputs with a lot of fluctuation. The irregular data pattern seems to reflect the larger communication and synchronization costs to work with perturbed. For the comp region, all input types had increasing speed up with processor count unlike comm. This is expected as the computation-focused region would see the most benefit from parallel processing and the reduction of workload. Finally, the main region had initial speedip but began to plateau or decrease at around 32 to 64 processors. At high input size the speedup remained steady with large processor counts. This indicates a balance between computation and communication overheads. 
-    - ##### Main Region:
-      ![Strong Scaling Speedup Main Region](Plots/Merge_Plots/main.png)
-    - ##### Comp Region:
-      ![Strong Scaling Speedup Comp Region](Plots/Merge_Plots/comp.png)
-    - ##### Comm Region:
-      ![Strong Scaling Speedup Comm Region](Plots/Merge_Plots/comm.png)
-  - #### Weak Scaling
-    For the main region, the average time generally increased for both input size and processor count. The increase was steady, especially with larger processor counts, indicting that the weak scaling is not ideal in the main region as it should be constant. For the comm region there was significant increase especially when you look at 128 and 512 processors. This shows the communication overhead becoming substantial as the number of processors and input size grows. This again indicates poor weak scaling. Finally, for the comp region, the average time remained almost constant across all processor counts and input sizes. This is ideal for weak scaling as it indicates the computational part of the merge sort algorithm scaled well with more data and processors.
-    - ##### Main Region:
-      ![Strong Scaling Speedup Main Region](Plots/Merge_Plots/weak_main.png)
-    - ##### Comp Region:
-      ![Strong Scaling Speedup Comp Region](Plots/Merge_Plots/weak_comp.png)
-    - ##### Comm Region:
-      ![Strong Scaling Speedup Comm Region](Plots/Merge_Plots/weak_comm.png)
+- #### Strong Scaling:
+  As far as scaling goes, overall as the number of processors increased, the average time for regions and input configurations decreased intially. Hoever, this began to plateau around 128 to 256 processors or at times began to increase the average time. This is due to the overhead of managing the processors as well as merge sort beginning to see diminishing returns due to the merging of "buckets" leading to less and less opportunities to utilize parallel computing. Furthermore, perturbed seemed to overall exhibit higher processing times across most input sizes which most likely indicates this parallelization of merge sort is not well optimized for that input type. Finally, comp showed consistent improvement with increased processors and larger inputs indicating it benefitted from parallelization. The comm regiion showed less improvement and even showed an increase in time as processor count grew most likely indiciating the toll of communication overhead. The main region seemed to show improvement but began to plateu faster than camp with perturbed showing larger variance.
+  - ##### Avg time/rank:
+    ![Strong Scaling Input 2^28](Plots/Merge_Plots/2_28.png)
+    ![Strong Scaling Input 2^26](Plots/Merge_Plots/2_26.png)
+    ![Strong Scaling Input 2^24](Plots/Merge_Plots/2_24.png)
+    ![Strong Scaling Input 2^22](Plots/Merge_Plots/2_22.png)
+    ![Strong Scaling Input 2^20](Plots/Merge_Plots/2_20.png)
+    ![Strong Scaling Input 2^18](Plots/Merge_Plots/2_18.png)
+    ![Strong Scaling Input 2^16](Plots/Merge_Plots/2_16.png)
+- #### Strong Scaling Speedup
+  For the comm region, the random and sorted input types peaked at low processor counts then struggled as the number of processors increased. Similar results can be seen with reverse input with a sharp initial speedup that quickly falls as communication overhead began to negatively impact performance. With perturbed there was a erratic speedup with large inputs with a lot of fluctuation. The irregular data pattern seems to reflect the larger communication and synchronization costs to work with perturbed. For the comp region, all input types had increasing speed up with processor count unlike comm. This is expected as the computation-focused region would see the most benefit from parallel processing and the reduction of workload. Finally, the main region had initial speedip but began to plateau or decrease at around 32 to 64 processors. At high input size the speedup remained steady with large processor counts. This indicates a balance between computation and communication overheads.
+  - ##### Main Region:
+    ![Strong Scaling Speedup Main Region](Plots/Merge_Plots/main.png)
+  - ##### Comp Region:
+    ![Strong Scaling Speedup Comp Region](Plots/Merge_Plots/comp.png)
+  - ##### Comm Region:
+    ![Strong Scaling Speedup Comm Region](Plots/Merge_Plots/comm.png)
+- #### Weak Scaling
+  For the main region, the average time generally increased for both input size and processor count. The increase was steady, especially with larger processor counts, indicting that the weak scaling is not ideal in the main region as it should be constant. For the comm region there was significant increase especially when you look at 128 and 512 processors. This shows the communication overhead becoming substantial as the number of processors and input size grows. This again indicates poor weak scaling. Finally, for the comp region, the average time remained almost constant across all processor counts and input sizes. This is ideal for weak scaling as it indicates the computational part of the merge sort algorithm scaled well with more data and processors.
+  - ##### Main Region:
+    ![Strong Scaling Speedup Main Region](Plots/Merge_Plots/weak_main.png)
+  - ##### Comp Region:
+    ![Strong Scaling Speedup Comp Region](Plots/Merge_Plots/weak_comp.png)
+  - ##### Comm Region:
+    ![Strong Scaling Speedup Comm Region](Plots/Merge_Plots/weak_comm.png)
 - ### Radix Sort (Deric Le)
+
   - #### Strong Scaling:
   - Comp region
     - For all input types, average time decreased as amount of processors increased
@@ -682,6 +727,7 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
     - Average time taken is fairly stable as amount of processors increased
     - Total time taken for comm region increased as input size increased
   - Main region
+
     - For input types 2^16, 2^18, 2^20, 2^22, the average time increased as more processors were used. For input type 2^24, there is an initial decrease in time between 2 and 4 processors, and then the average time increases as the amount of processors increase. For smaller input sizes, increasing the amount of processors may decrease computational load on each processor, but increases the communication overhead. So for input 2^24, while there was an initial cut in time, the communication costs again start to increase after 4 processors, leading to an increase in average time.
     - ##### Avg time/rank:
     - ![](Plots/Radixsort_Plots/radix-2-16-strong.png)
@@ -691,7 +737,7 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
     - ![](Plots/Radixsort_Plots/radix-2-24-strong.png)
     - ![](Plots/Radixsort_Plots/radix-2-26-strong.png)
     - ![](Plots/Radixsort_Plots/radix-2-28-strong.png)
-  
+
   - #### Strong Scaling Speedup
   - Comp region
     - Graphs increase exponentially for larger input sizes as num of processors increase.
@@ -702,6 +748,7 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
     - for input size's 2^16, 2^18, 2^20, the speedup has a generally negative trend
     - for larger input sizes, speedup has a generally positive trend
   - Main region
+
     - as input size increases, speedup increases
     - as number of processors increase,
       - for large input: speedup increases
@@ -711,6 +758,7 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
   - #### Weak Scaling
     From the weak scaling graphs, we can see that our implementation for bitonic sort is scalable and able to handle larger problem sizes without significant degradation in performance. For the main region, although the line is not perfectly flat and has an increase, looking at the y-axis, we can see that the increase is only about 1.5 seconds, which is not what we would consider as a significant increase. This slight increase is most likely due to the increased communication overhead from using more processors. We can kind of see that effect with the weak scaling graphs for the comm region, which shows that as the problem size got bigger and more processors were used, the average execution time slightly increased.
     - ![](Plots/Radixsort_Plots/radix-weak.png)
+
 ## 5. Presentation
 
 Plots for the presentation should be as follows:
@@ -724,7 +772,6 @@ Plots for the presentation should be as follows:
 Analyze these plots and choose a subset to present and explain in your presentation.
 
 Link to Presentation: https://docs.google.com/presentation/d/1DXX47mews-jL42tGsXIYynL6IjeSmpn-KnhKiRSiyMY/edit?usp=sharing
-
 
 ## 6. Final Report
 
