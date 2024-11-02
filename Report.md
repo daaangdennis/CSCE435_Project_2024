@@ -646,8 +646,32 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
       ![](Plots/Samplesort_Plots/samplesort_comp_weak_random.png)
         
 - ### Merge Sort ((Jack Couture))
-  With the caliper files there were a multitude of issues regading the connection with Grace. However, a connection was established long enough to produce caliper files and ensuer that the local results were able to be scaled. Future scripts will be an to fulfill the needs of the report and presentation and graphed using Jupyter.
-
+ - #### Strong Scaling:
+    As far as scaling goes, overall as the number of processors increased, the average time for regions and input configurations decreased intially. Hoever, this began to plateau around 128 to 256 processors or at times began to increase the average time. This is due to the overhead of managing the processors as well as merge sort beginning to see diminishing returns due to the merging of "buckets" leading to less and less opportunities to utilize parallel computing. Furthermore, perturbed seemed to overall exhibit higher processing times across most input sizes which most likely indicates this parallelization of merge sort is not well optimized for that input type. Finally, comp showed consistent improvement with increased processors and larger inputs indicating it benefitted from parallelization. The comm regiion showed less improvement and even showed an increase in time as processor count grew most likely indiciating the toll of communication overhead. The main region seemed to show improvement but began to plateu faster than camp with perturbed showing larger variance.
+    - ##### Avg time/rank:
+        ![Strong Scaling Input 2^28](Plots/Merge_Plots/2_28.png)
+        ![Strong Scaling Input 2^26](Plots/Merge_Plots/2_26.png)
+        ![Strong Scaling Input 2^24](Plots/Merge_Plots/2_24.png)
+        ![Strong Scaling Input 2^22](Plots/Merge_Plots/2_22.png)
+        ![Strong Scaling Input 2^20](Plots/Merge_Plots/2_20.png)
+        ![Strong Scaling Input 2^18](Plots/Merge_Plots/2_18.png)
+        ![Strong Scaling Input 2^16](Plots/Merge_Plots/2_16.png)
+  - #### Strong Scaling Speedup
+    For the comm region, the random and sorted input types peaked at low processor counts then struggled as the number of processors increased. Similar results can be seen with reverse input with a sharp initial speedup that quickly falls as communication overhead began to negatively impact performance. With perturbed there was a erratic speedup with large inputs with a lot of fluctuation. The irregular data pattern seems to reflect the larger communication and synchronization costs to work with perturbed. For the comp region, all input types had increasing speed up with processor count unlike comm. This is expected as the computation-focused region would see the most benefit from parallel processing and the reduction of workload. Finally, the main region had initial speedip but began to plateau or decrease at around 32 to 64 processors. At high input size the speedup remained steady with large processor counts. This indicates a balance between computation and communication overheads. 
+    - ##### Main Region:
+      ![Strong Scaling Speedup Main Region](Plots/Merge_Plots/main.png)
+    - ##### Comp Region:
+      ![Strong Scaling Speedup Comp Region](Plots/Merge_Plots/comp.png)
+    - ##### Comm Region:
+      ![Strong Scaling Speedup Comm Region](Plots/Merge_Plots/comm.png)
+  - #### Weak Scaling
+    For the main region, the average time generally increased for both input size and processor count. The increase was steady, especially with larger processor counts, indicting that the weak scaling is not ideal in the main region as it should be constant. For the comm region there was significant increase especially when you look at 128 and 512 processors. This shows the communication overhead becoming substantial as the number of processors and input size grows. This again indicates poor weak scaling. Finally, for the comp region, the average time remained almost constant across all processor counts and input sizes. This is ideal for weak scaling as it indicates the computational part of the merge sort algorithm scaled well with more data and processors.
+    - ##### Main Region:
+      ![Strong Scaling Speedup Main Region](Plots/Merge_Plots/weak_main.png)
+    - ##### Comp Region:
+      ![Strong Scaling Speedup Comp Region](Plots/Merge_Plots/weak_comp.png)
+    - ##### Comm Region:
+      ![Strong Scaling Speedup Comm Region](Plots/Merge_Plots/weak_comm.png)
 - ### Radix Sort (Deric Le)
   - #### Strong Scaling:
   - Comp region
@@ -698,6 +722,9 @@ Plots for the presentation should be as follows:
     - Weak scaling plots for each input_type (4 plots)
 
 Analyze these plots and choose a subset to present and explain in your presentation.
+
+Link to Presentation: https://docs.google.com/presentation/d/1DXX47mews-jL42tGsXIYynL6IjeSmpn-KnhKiRSiyMY/edit?usp=sharing
+
 
 ## 6. Final Report
 
